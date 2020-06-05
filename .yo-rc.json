@@ -1,0 +1,37 @@
+{
+  "generator-jhipster": {
+    "promptValues": {
+      "packageName": "com.boa.api"
+    },
+    "jhipsterVersion": "6.6.0",
+    "applicationType": "monolith",
+    "baseName": "BillerGateway",
+    "packageName": "com.boa.api",
+    "packageFolder": "com/boa/api",
+    "serverPort": "8080",
+    "authenticationType": "jwt",
+    "cacheProvider": "ehcache",
+    "enableHibernateCache": true,
+    "websocket": false,
+    "databaseType": "sql",
+    "devDatabaseType": "oracle",
+    "prodDatabaseType": "oracle",
+    "searchEngine": false,
+    "messageBroker": false,
+    "serviceDiscoveryType": false,
+    "buildTool": "maven",
+    "enableSwaggerCodegen": false,
+    "jwtSecretKey": "NTM3ZWI0NTk4MjU4OTQ0NDJjNjhlY2Q1NWU1ZTE4NjYzZDM4NGFjOWRmZTRlZWQzMGUxNjJlYWM2MTY4NmJjZmI1MDdhMDFmY2EyYjkyNGJiYzc3MDBkMDk0NTRjODJlNDY2YjQyYjAxYTdjNTEyZjQ5M2M2ZmM0NTdhYmY5NTc=",
+    "embeddableLaunchScript": false,
+    "creationTimestamp": 1581954193978,
+    "testFrameworks": [],
+    "jhiPrefix": "jhi",
+    "entitySuffix": "",
+    "dtoSuffix": "DTO",
+    "otherModules": [],
+    "enableTranslation": false,
+    "clientPackageManager": "npm",
+    "blueprints": [],
+    "skipClient": true
+  }
+}

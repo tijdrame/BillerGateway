@@ -1,0 +1,92 @@
+{
+    "fluentMethods": true,
+    "clientRootFolder": "",
+    "relationships": [
+        {
+            "relationshipName": "billerT",
+            "otherEntityName": "billerT",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id",
+            "otherEntityRelationshipName": "transactionGlobal"
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "referenceFacture",
+            "fieldType": "Long"
+        },
+        {
+            "fieldName": "numeroFacture",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "datePaiement",
+            "fieldType": "LocalDate"
+        },
+        {
+            "fieldName": "echeance",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "channel",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "deviceId",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "client",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "prenom",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "nom",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "telephone",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "montant",
+            "fieldType": "Double"
+        },
+        {
+            "fieldName": "debitAccount",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "creditAccount",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "frais",
+            "fieldType": "Double"
+        },
+        {
+            "fieldName": "codeRetour",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "createdBy",
+            "fieldType": "Long"
+        },
+        {
+            "fieldName": "createdDate",
+            "fieldType": "LocalDate"
+        }
+    ],
+    "changelogDate": "20200318103714",
+    "dto": "no",
+    "searchEngine": false,
+    "service": "serviceClass",
+    "entityTableName": "tr",
+    "databaseType": "sql",
+    "readOnly": false,
+    "jpaMetamodelFiltering": false,
+    "pagination": "no"
+}
