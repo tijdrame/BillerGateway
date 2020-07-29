@@ -317,7 +317,7 @@ public class GeneriqueApiService {
             }
             os.close();
         } catch (Exception e) {
-            log.info("exception occur = [{}]", e.getMessage());
+            log.info("exception occur = [{}]", e);
         }
         trackingService.save(tracking);
         return genericResponse;
