@@ -78,7 +78,7 @@ public class WebServices implements Serializable {
     @Column(name = "XML_REQUEST")
     private String xmlRequest;
 
-    @Column(name = "RESPONSE_PATH")
+    @Column(name = "RESPONSE_PATH")//pour les responses avec split comme JIRAMA
     private String responsePath;
 
     @Column(name = "END_POINT_EXPOSE")

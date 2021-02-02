@@ -1,6 +1,6 @@
 package com.boa.api.web.rest;
 
-import com.boa.api.BillerGateway;
+import com.boa.api.BillerGatewayApp;
 import com.boa.api.domain.BillerT;
 import com.boa.api.repository.BillerTRepository;
 import com.boa.api.service.BillerTService;
@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for the {@link BillerTResource} REST controller.
  */
-@SpringBootTest(classes = BillerGateway.class)
+@SpringBootTest(classes = BillerGatewayApp.class)
 public class BillerTResourceIT {
 
     private static final String DEFAULT_BILLER_CODE = "AAAAAAAAAA";

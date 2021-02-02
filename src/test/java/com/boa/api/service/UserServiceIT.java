@@ -1,6 +1,6 @@
 package com.boa.api.service;
 
-import com.boa.api.BillerGateway;
+import com.boa.api.BillerGatewayApp;
 import com.boa.api.config.Constants;
 import com.boa.api.domain.User;
 import com.boa.api.repository.UserRepository;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 /**
  * Integration tests for {@link UserService}.
  */
-@SpringBootTest(classes = BillerGateway.class)
+@SpringBootTest(classes = BillerGatewayApp.class)
 @Transactional
 public class UserServiceIT {
 

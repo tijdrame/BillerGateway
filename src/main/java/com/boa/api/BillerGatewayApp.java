@@ -22,13 +22,13 @@ import java.util.Collection;
 
 @SpringBootApplication
 @EnableConfigurationProperties({LiquibaseProperties.class, ApplicationProperties.class})
-public class BillerGateway implements InitializingBean {
+public class BillerGatewayApp implements InitializingBean {
 
-    private static final Logger log = LoggerFactory.getLogger(BillerGateway.class);
+    private static final Logger log = LoggerFactory.getLogger(BillerGatewayApp.class);
 
     private final Environment env;
 
-    public BillerGateway(Environment env) {
+    public BillerGatewayApp(Environment env) {
         this.env = env;
     }
 
@@ -58,7 +58,7 @@ public class BillerGateway implements InitializingBean {
      * @param args the command line arguments.
      */
     public static void main(String[] args) {
-        SpringApplication app = new SpringApplication(BillerGateway.class);
+        SpringApplication app = new SpringApplication(BillerGatewayApp.class);
         DefaultProfileUtil.addDefaultProfile(app);
         Environment env = app.run(args).getEnvironment();
         logApplicationStartup(env);

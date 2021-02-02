@@ -2,7 +2,7 @@ package com.boa.api.service;
 
 import com.boa.api.config.Constants;
 
-import com.boa.api.BillerGateway;
+import com.boa.api.BillerGatewayApp;
 import com.boa.api.domain.User;
 import io.github.jhipster.config.JHipsterProperties;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +40,7 @@ import static org.mockito.Mockito.*;
 /**
  * Integration tests for {@link MailService}.
  */
-@SpringBootTest(classes = BillerGateway.class)
+@SpringBootTest(classes = BillerGatewayApp.class)
 public class MailServiceIT {
 
     private static String[] languages = {

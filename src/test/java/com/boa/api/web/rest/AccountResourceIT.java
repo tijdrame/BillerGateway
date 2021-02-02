@@ -1,6 +1,6 @@
 package com.boa.api.web.rest;
 
-import com.boa.api.BillerGateway;
+import com.boa.api.BillerGatewayApp;
 import com.boa.api.config.Constants;
 import com.boa.api.domain.Authority;
 import com.boa.api.domain.User;
@@ -43,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for the {@link AccountResource} REST controller.
  */
-@SpringBootTest(classes = BillerGateway.class)
+@SpringBootTest(classes = BillerGatewayApp.class)
 public class AccountResourceIT {
 
     @Autowired

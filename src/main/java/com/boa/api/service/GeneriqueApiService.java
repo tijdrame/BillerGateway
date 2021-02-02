@@ -146,7 +146,7 @@ public class GeneriqueApiService {
             StringBuilder builder = new StringBuilder();
             String reqStr = "";
             if (!webServices.getAttribute02().equalsIgnoreCase("GET") && webServices.getAttribute01() != null) {
-                builder.append(headerRequest());
+                builder.append(headerRequest());//TODO remove when direct
                 builder.append(requestParam);
                 builder.append(footerRequest(webServices.getEndPoint(), webServices.getProtocole().toLowerCase()));
 

@@ -1,6 +1,6 @@
 package com.boa.api.web.rest;
 
-import com.boa.api.BillerGateway;
+import com.boa.api.BillerGatewayApp;
 import com.boa.api.domain.ParamFiliale;
 import com.boa.api.repository.ParamFilialeRepository;
 import com.boa.api.service.ParamFilialeService;
@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for the {@link ParamFilialeResource} REST controller.
  */
-@SpringBootTest(classes = BillerGateway.class)
+@SpringBootTest(classes = BillerGatewayApp.class)
 public class ParamFilialeResourceIT {
 
     private static final String DEFAULT_CODE_FILIALE = "AAAAAAAAAA";

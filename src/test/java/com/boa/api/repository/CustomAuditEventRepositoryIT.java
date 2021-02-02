@@ -1,6 +1,6 @@
 package com.boa.api.repository;
 
-import com.boa.api.BillerGateway;
+import com.boa.api.BillerGatewayApp;
 import com.boa.api.config.Constants;
 import com.boa.api.config.audit.AuditEventConverter;
 import com.boa.api.domain.PersistentAuditEvent;
@@ -27,7 +27,7 @@ import static com.boa.api.repository.CustomAuditEventRepository.EVENT_DATA_COLUM
 /**
  * Integration tests for {@link CustomAuditEventRepository}.
  */
-@SpringBootTest(classes = BillerGateway.class)
+@SpringBootTest(classes = BillerGatewayApp.class)
 @Transactional
 public class CustomAuditEventRepositoryIT {
 

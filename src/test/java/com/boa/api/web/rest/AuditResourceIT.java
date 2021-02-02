@@ -1,6 +1,6 @@
 package com.boa.api.web.rest;
 
-import com.boa.api.BillerGateway;
+import com.boa.api.BillerGatewayApp;
 import io.github.jhipster.config.JHipsterProperties;
 import com.boa.api.config.audit.AuditEventConverter;
 import com.boa.api.domain.PersistentAuditEvent;
@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for the {@link AuditResource} REST controller.
  */
-@SpringBootTest(classes = BillerGateway.class)
+@SpringBootTest(classes = BillerGatewayApp.class)
 @Transactional
 public class AuditResourceIT {
 

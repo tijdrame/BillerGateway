@@ -1,6 +1,6 @@
 package com.boa.api.web.rest;
 
-import com.boa.api.BillerGateway;
+import com.boa.api.BillerGatewayApp;
 import com.boa.api.domain.TransactionGlobal;
 import com.boa.api.repository.TransactionGlobalRepository;
 import com.boa.api.service.TransactionGlobalService;
@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for the {@link TransactionGlobalResource} REST controller.
  */
-@SpringBootTest(classes = BillerGateway.class)
+@SpringBootTest(classes = BillerGatewayApp.class)
 public class TransactionGlobalResourceIT {
 
     private static final String DEFAULT_REFERENCE_FACTURE = "1L";

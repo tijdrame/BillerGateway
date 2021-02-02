@@ -1,6 +1,6 @@
 package com.boa.api.web.rest.errors;
 
-import com.boa.api.BillerGateway;
+import com.boa.api.BillerGatewayApp;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests {@link ExceptionTranslator} controller advice.
  */
-@SpringBootTest(classes = BillerGateway.class)
+@SpringBootTest(classes = BillerGatewayApp.class)
 public class ExceptionTranslatorIT {
 
     @Autowired

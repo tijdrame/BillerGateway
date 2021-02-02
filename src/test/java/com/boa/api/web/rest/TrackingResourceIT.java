@@ -1,6 +1,6 @@
 package com.boa.api.web.rest;
 
-import com.boa.api.BillerGateway;
+import com.boa.api.BillerGatewayApp;
 import com.boa.api.domain.Tracking;
 import com.boa.api.repository.TrackingRepository;
 import com.boa.api.service.TrackingService;
@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for the {@link TrackingResource} REST controller.
  */
-@SpringBootTest(classes = BillerGateway.class)
+@SpringBootTest(classes = BillerGatewayApp.class)
 public class TrackingResourceIT {
 
     private static final String DEFAULT_TOKEN_TR = "AAAAAAAAAA";

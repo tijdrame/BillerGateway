@@ -2,7 +2,7 @@ package com.boa.api.service;
 
 import com.boa.api.domain.PersistentAuditEvent;
 import com.boa.api.repository.PersistenceAuditEventRepository;
-import com.boa.api.BillerGateway;
+import com.boa.api.BillerGatewayApp;
 import io.github.jhipster.config.JHipsterProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Integration tests for {@link AuditEventService}.
  */
-@SpringBootTest(classes = BillerGateway.class)
+@SpringBootTest(classes = BillerGatewayApp.class)
 @Transactional
 public class AuditEventServiceIT {
     @Autowired
