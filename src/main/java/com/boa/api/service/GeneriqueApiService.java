@@ -168,6 +168,7 @@ public class GeneriqueApiService {
             JSONObject obj = new JSONObject();
             log.info("resp code [{}]", conn.getResponseCode());
             if (conn.getResponseCode() == 200) {
+                genericResponse.setCode(String.valueOf(conn.getResponseCode()));
                 br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 String ligne = br.readLine();
                 while (ligne != null) {
@@ -296,10 +297,10 @@ public class GeneriqueApiService {
                     log.info("json ==> [{}]", result);
                     constructResp(webServices, result, genericResponse, billRequest.getBillerCode(),
                             billRequest.getLangue(), tracking, request, tab[1]);
-
                 }
 
             } else {// !=200
+                genericResponse.setCode(String.valueOf(conn.getResponseCode()));
                 br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
                 String ligne = br.readLine();
                 while (ligne != null) {
@@ -315,7 +316,7 @@ public class GeneriqueApiService {
                             billRequest.getLangue(), tracking, request, tab[1]);
                 }
             }
-            os.close();
+            // os.close();
         } catch (Exception e) {
             log.info("exception occur = [{}]", e);
         }
@@ -395,6 +396,7 @@ public class GeneriqueApiService {
             JSONObject obj = new JSONObject();
             log.info("resp code [{}]", conn.getResponseCode());
             if (conn.getResponseCode() == 200) {
+                genericResponse.setCode(String.valueOf(conn.getResponseCode()));
                 br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 String ligne = br.readLine();
                 while (ligne != null) {
@@ -552,6 +554,7 @@ public class GeneriqueApiService {
                 }
 
             } else {// !=200
+                genericResponse.setCode(String.valueOf(conn.getResponseCode()));
                 br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
                 String ligne = br.readLine();
                 while (ligne != null) {
@@ -567,7 +570,7 @@ public class GeneriqueApiService {
                             cardsRequest.getLangue(), tracking, request, tab[1]);
                 }
             }
-            os.close();
+            // os.close();
         } catch (Exception e) {
             log.info("exception occur = [{}]", e.getMessage());
         }
@@ -651,7 +654,7 @@ public class GeneriqueApiService {
         List<ItemResp> itemResps = new ArrayList<>();
         for (WebServiceParams it : webServices.getServiceParams()) {
             if (it.getParamSens().equalsIgnoreCase("O")) {
-                log.info("p -> [{} ]", it.getParamName());
+                log.info("p -> [{}]", it.getParamName());
                 if (object.toString().contains(it.getParamName())) {
                     Boolean resp = objectHasProperty(genericResponse, it.getParamNameCorresp());
                     if (resp) {
@@ -693,12 +696,12 @@ public class GeneriqueApiService {
                                                             Field variableName2 = itemResp.getClass()
                                                                     .getDeclaredField(itT.getParamNameCorresp());
                                                             variableName2.setAccessible(true);
-                                                            if(it.getParamNameCorresp().equalsIgnoreCase("billAmount")||
-                                                            it.getParamNameCorresp().equalsIgnoreCase("feeAmount")) {
-                                                                Double amount = Double.valueOf(object.get(it.getParamName()).toString());
+                                                            if(itT.getParamNameCorresp().equalsIgnoreCase("billAmount")||
+                                                            itT.getParamNameCorresp().equalsIgnoreCase("feeAmount")) {
+                                                                Double amount = Double.valueOf(itTemp.get(itT.getParamName()).toString());
                                                                 variableName2.set(itemResp, amount);
                                                             } else
-                                                                variableName2.set(itemResp, (object.get(it.getParamName())).toString());
+                                                                variableName2.set(itemResp, (itTemp.get(itT.getParamName())).toString());
                                                         }
                                                     }
                                                 }
@@ -952,6 +955,7 @@ public class GeneriqueApiService {
             JSONObject obj = new JSONObject();
             log.info("resp code [{}]", conn.getResponseCode());
             if (conn.getResponseCode() == 200) {
+                genericResponse.setCode(String.valueOf(conn.getResponseCode()));
                 br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 String ligne = br.readLine();
                 while (ligne != null) {
@@ -1195,6 +1199,7 @@ public class GeneriqueApiService {
                 }
 
             } else {
+                genericResponse.setCode(String.valueOf(conn.getResponseCode()));
                 // resp != 200
                 br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
                 String ligne = br.readLine();
