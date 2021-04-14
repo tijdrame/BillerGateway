@@ -15,6 +15,7 @@ import com.boa.api.request.GetBillersRequest;
 import com.boa.api.request.GetBillsByNumRequest;
 import com.boa.api.request.GetBillsByRefJiramaReq;
 import com.boa.api.request.GetBillsByRefRequest;
+import com.boa.api.request.NotificationPaiementRequest;
 import com.boa.api.request.PayementRequest;
 import com.boa.api.request.PaymentReceiptRequest;
 import com.boa.api.request.RecuPaiementRequest;
@@ -30,6 +31,7 @@ import com.boa.api.response.GetBillFeesResponse;
 import com.boa.api.response.GetBillGenericResponse;
 import com.boa.api.response.GetBillersResponse;
 import com.boa.api.response.GetBillsByRefResponse;
+import com.boa.api.response.NotificationPaiementResponse;
 import com.boa.api.response.PayementResponse;
 import com.boa.api.response.RecuPaiementResponse;
 import com.boa.api.response.ResponseResponse;
@@ -62,53 +64,58 @@ public class ApiResource {
     private final ApiService apiService;
     private final GeneriqueApiService generiqueApiService;
 
-    
-
-    public ApiResource(ApiService apiService, GeneriqueApiService generiqueApiService ) {
+    public ApiResource(ApiService apiService, GeneriqueApiService generiqueApiService) {
         this.apiService = apiService;
         this.generiqueApiService = generiqueApiService;
     }
 
-    @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, 
-    consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE },path = "/getBill")
+    @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, consumes = {
+            MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, path = "/getBill")
     public ResponseEntity<CheckFactoryResponse> checkFactory(@RequestBody GetBillRequest billRequest,
             HttpServletRequest request) throws URISyntaxException {
         log.debug("REST request to getBill : {}", billRequest);
-        /*CheckFactoryRequest cardsRequest = new CheckFactoryRequest();
-        cardsRequest.setRefenca(billRequest.getCashingRef());
-        cardsRequest.setTelcli(billRequest.getRequierNumber());
-        cardsRequest.setVnumFact(billRequest.getBillNum());
-        cardsRequest.setLangue(billRequest.getLangue());
-        cardsRequest.setBillerCode(billRequest.getBillerCode());
-        cardsRequest.setChannel(billRequest.getChannelType());
-        CheckFactoryResponse response = new CheckFactoryResponse();
-        if (controleParam(cardsRequest.getVnumFact()) || controleParam(cardsRequest.getTelcli())
-                || controleParam(cardsRequest.getRefenca()) || controleParam(cardsRequest.getLangue())
-                || controleParam(cardsRequest.getChannel())) {
-            response.setCode(ICodeDescResponse.PARAM_ABSENT_CODE);
-            response.setDateResponse(Instant.now());
-            response.setDescription(ICodeDescResponse.PARAM_DESCRIPTION);
-            return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
-        }*/
-        /*if(billRequest.getBillerCode().equalsIgnoreCase(billerJirama)){
-            response = apiService.checkFactoryJir(cardsRequest, request);
-            return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
-        }else if(billRequest.getBillerCode().equalsIgnoreCase(billerCnss)){*/
-            CheckFactoryResponse response = generiqueApiService.checkFactory(billRequest, request);
-            return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
-        /*}
-        GetBillGenericResponse billGenericResponse = new GetBillGenericResponse();
-        billGenericResponse.setCode("404");
-        billGenericResponse.setDateResponse(Instant.now());
-        billGenericResponse.setDescription("Biller not found");
-        return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(billGenericResponse);
-*/
-        
-        
+        /*
+         * CheckFactoryRequest cardsRequest = new CheckFactoryRequest();
+         * cardsRequest.setRefenca(billRequest.getCashingRef());
+         * cardsRequest.setTelcli(billRequest.getRequierNumber());
+         * cardsRequest.setVnumFact(billRequest.getBillNum());
+         * cardsRequest.setLangue(billRequest.getLangue());
+         * cardsRequest.setBillerCode(billRequest.getBillerCode());
+         * cardsRequest.setChannel(billRequest.getChannelType()); CheckFactoryResponse
+         * response = new CheckFactoryResponse(); if
+         * (controleParam(cardsRequest.getVnumFact()) ||
+         * controleParam(cardsRequest.getTelcli()) ||
+         * controleParam(cardsRequest.getRefenca()) ||
+         * controleParam(cardsRequest.getLangue()) ||
+         * controleParam(cardsRequest.getChannel())) {
+         * response.setCode(ICodeDescResponse.PARAM_ABSENT_CODE);
+         * response.setDateResponse(Instant.now());
+         * response.setDescription(ICodeDescResponse.PARAM_DESCRIPTION); return
+         * ResponseEntity.ok().header("Authorization",
+         * request.getHeader("Authorization")).body(response); }
+         */
+        /*
+         * if(billRequest.getBillerCode().equalsIgnoreCase(billerJirama)){ response =
+         * apiService.checkFactoryJir(cardsRequest, request); return
+         * ResponseEntity.ok().header("Authorization",
+         * request.getHeader("Authorization")).body(response); }else
+         * if(billRequest.getBillerCode().equalsIgnoreCase(billerCnss)){
+         */
+        CheckFactoryResponse response = generiqueApiService.checkFactory(billRequest, request);
+        return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
+        /*
+         * } GetBillGenericResponse billGenericResponse = new GetBillGenericResponse();
+         * billGenericResponse.setCode("404");
+         * billGenericResponse.setDateResponse(Instant.now());
+         * billGenericResponse.setDescription("Biller not found"); return
+         * ResponseEntity.ok().header("Authorization",
+         * request.getHeader("Authorization")).body(billGenericResponse);
+         */
+
     }
 
-    @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE,MediaType.APPLICATION_JSON_VALUE },
-    consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, path = "/paymentReceipt")
+    @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, consumes = {
+            MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, path = "/paymentReceipt")
     public ResponseEntity<RecuPaiementResponse> recuPaiement(@RequestBody PaymentReceiptRequest paymentReceiptRequest,
             HttpServletRequest request) throws URISyntaxException {
         log.debug("REST request to recuPaiement : {}", paymentReceiptRequest);
@@ -127,8 +134,8 @@ public class ApiResource {
         return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
     }
 
-    @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, 
-    consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE },path = "/getBillsByRef")
+    @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, consumes = {
+            MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, path = "/getBillsByRef")
     public ResponseEntity<GetBillsByRefResponse> getBillsByRef(@RequestBody GetBillsByRefRequest billsByRefRequest,
             HttpServletRequest request) throws URISyntaxException {
         log.debug("REST request to getBillsByRef : {}", billsByRefRequest);
@@ -140,20 +147,24 @@ public class ApiResource {
         cardsRequest.setVref(billsByRefRequest.getBillRef());
         cardsRequest.setChannel(billsByRefRequest.getChannelType());
         GetBillsByRefResponse response = new GetBillsByRefResponse();
-        /*if (controleParam(cardsRequest.getVref()) || controleParam(cardsRequest.getTelcli())
-                || controleParam(cardsRequest.getRefenca()) || controleParam(cardsRequest.getLangue())
-                || controleParam(cardsRequest.getChannel())) {
-            response.setCode(ICodeDescResponse.PARAM_ABSENT_CODE);
-            response.setDateResponse(Instant.now());
-            response.setDescription(ICodeDescResponse.PARAM_DESCRIPTION);
-            return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
-        }*/
+        /*
+         * if (controleParam(cardsRequest.getVref()) ||
+         * controleParam(cardsRequest.getTelcli()) ||
+         * controleParam(cardsRequest.getRefenca()) ||
+         * controleParam(cardsRequest.getLangue()) ||
+         * controleParam(cardsRequest.getChannel())) {
+         * response.setCode(ICodeDescResponse.PARAM_ABSENT_CODE);
+         * response.setDateResponse(Instant.now());
+         * response.setDescription(ICodeDescResponse.PARAM_DESCRIPTION); return
+         * ResponseEntity.ok().header("Authorization",
+         * request.getHeader("Authorization")).body(response); }
+         */
         response = generiqueApiService.getBillsByRef(billsByRefRequest, request);
         return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
     }
 
-    @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE,MediaType.APPLICATION_JSON_VALUE },
-    consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, path = "/getBillsByNum")
+    @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, consumes = {
+            MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, path = "/getBillsByNum")
     public ResponseEntity<GetBillsByRefResponse> getBillsByNum(@RequestBody GetBillsByNumRequest billsByNumRequest,
             HttpServletRequest request) throws URISyntaxException {
         log.debug("REST request to getBillsByNum : {}", billsByNumRequest);
@@ -166,14 +177,18 @@ public class ApiResource {
         cardsRequest.setChannel(billsByNumRequest.getChannelType());
 
         GetBillsByRefResponse response = new GetBillsByRefResponse();
-        /*if (controleParam(cardsRequest.getVnumFact()) || controleParam(cardsRequest.getTelcli())
-                || controleParam(cardsRequest.getRefenca()) || controleParam(cardsRequest.getLangue())
-                || controleParam(cardsRequest.getChannel())) {
-            response.setCode(ICodeDescResponse.PARAM_ABSENT_CODE);
-            response.setDateResponse(Instant.now());
-            response.setDescription(ICodeDescResponse.PARAM_DESCRIPTION);
-            return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
-        }*/
+        /*
+         * if (controleParam(cardsRequest.getVnumFact()) ||
+         * controleParam(cardsRequest.getTelcli()) ||
+         * controleParam(cardsRequest.getRefenca()) ||
+         * controleParam(cardsRequest.getLangue()) ||
+         * controleParam(cardsRequest.getChannel())) {
+         * response.setCode(ICodeDescResponse.PARAM_ABSENT_CODE);
+         * response.setDateResponse(Instant.now());
+         * response.setDescription(ICodeDescResponse.PARAM_DESCRIPTION); return
+         * ResponseEntity.ok().header("Authorization",
+         * request.getHeader("Authorization")).body(response); }
+         */
         response = apiService.getBillsByNum(billsByNumRequest, request);
         return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
     }
@@ -195,8 +210,8 @@ public class ApiResource {
         return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
     }
 
-    @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE,MediaType.APPLICATION_JSON_VALUE }, 
-    consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE },path = "/checkCustomer")
+    @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, consumes = {
+            MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, path = "/checkCustomer")
     public ResponseEntity<CheckCustomerResponse> checkCustomer(@RequestBody CheckCustomerRequest checkCustomerRequest,
             HttpServletRequest request) throws URISyntaxException {
         log.debug("REST request to checkCustomer : {}", checkCustomerRequest);
@@ -214,8 +229,8 @@ public class ApiResource {
         return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
     }
 
-    @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, 
-    consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE },path = "/getBillers")
+    @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, consumes = {
+            MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, path = "/getBillers")
     public ResponseEntity<GetBillersResponse> getBillers(@RequestBody GetBillersRequest billersRequest,
             HttpServletRequest request) throws URISyntaxException {
         log.debug("REST request to billersRequest : {}", billersRequest);
@@ -231,8 +246,8 @@ public class ApiResource {
         return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
     }
 
-    @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE },
-    consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, path = "/getBillFees")
+    @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, consumes = {
+            MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, path = "/getBillFees")
     public ResponseEntity<GetBillFeesResponse> getBillFees(@RequestBody GetBillFeesRequest billFeesRequest,
             HttpServletRequest request) throws URISyntaxException {
         log.debug("REST request to getBillFees : {}", billFeesRequest);
@@ -249,27 +264,45 @@ public class ApiResource {
         return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
     }
 
-    @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE,MediaType.APPLICATION_JSON_VALUE }, 
-    consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE },path = "/payBill")
-public ResponseEntity<PayementResponse> payBill(@RequestBody PayementRequest payementRequest,
-        HttpServletRequest request) throws URISyntaxException {
-    log.debug("REST request to payBill : {}", payementRequest);
+    @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, consumes = {
+            MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, path = "/payBill")
+    public ResponseEntity<PayementResponse> payBill(@RequestBody PayementRequest payementRequest,
+            HttpServletRequest request) throws URISyntaxException {
+        log.debug("REST request to payBill : {}", payementRequest);
 
-    PayementResponse response = new PayementResponse();
-    if (controleParam(payementRequest.getBillerCode()) || controleParam(payementRequest.getBillNum())
-            /*|| controleParam(payementRequest.getCashingRef())|| controleParam(payementRequest.getPaymentDate())
-            || controleParam(payementRequest.getPhoneNumber())|| controleParam(payementRequest.getDeviceId())
-            || controleParam(payementRequest.getDescription())|| controleParam(payementRequest.getLangue())
-            || controleParam(payementRequest.getCustomerAccount())|| controleParam(payementRequest.getBillRefTrx())
-            || controleParam(payementRequest.getChannelType())*/) {
-        response.setCode(ICodeDescResponse.PARAM_ABSENT_CODE);
-        response.setDateResponse(Instant.now());
-        response.setDescription(ICodeDescResponse.PARAM_DESCRIPTION);
+        PayementResponse response = new PayementResponse();
+        if (controleParam(payementRequest.getBillerCode()) || controleParam(payementRequest.getBillNum())
+        /*
+         * || controleParam(payementRequest.getCashingRef())||
+         * controleParam(payementRequest.getPaymentDate()) ||
+         * controleParam(payementRequest.getPhoneNumber())||
+         * controleParam(payementRequest.getDeviceId()) ||
+         * controleParam(payementRequest.getDescription())||
+         * controleParam(payementRequest.getLangue()) ||
+         * controleParam(payementRequest.getCustomerAccount())||
+         * controleParam(payementRequest.getBillRefTrx()) ||
+         * controleParam(payementRequest.getChannelType())
+         */) {
+            response.setCode(ICodeDescResponse.PARAM_ABSENT_CODE);
+            response.setDateResponse(Instant.now());
+            response.setDescription(ICodeDescResponse.PARAM_DESCRIPTION);
+            return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
+        }
+        response = generiqueApiService.payBill(payementRequest, request);
         return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
     }
-    response = generiqueApiService.payBill(payementRequest, request);
-    return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
-}
+
+    @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, consumes = {
+            MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, path = "/notificationPaiement")
+    public ResponseEntity<NotificationPaiementResponse> notificationPaiement(
+            @RequestBody NotificationPaiementRequest nPaiementRequest, HttpServletRequest request)
+            throws URISyntaxException {
+        log.debug("REST request to notificationPaiement : {}", nPaiementRequest);
+
+        NotificationPaiementResponse response = generiqueApiService.notificationPaiement(nPaiementRequest, request);
+        return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
+
+    }
 
     /*
      * @PostMapping("/factureDisponible") public
@@ -297,9 +330,8 @@ public ResponseEntity<PayementResponse> payBill(@RequestBody PayementRequest pay
     }
 
     @PostMapping("/getBillerByCode")
-    public ResponseEntity<BillerByCodeResponse> getBillerByCode(@RequestBody BillerByCodeRequest billerByCodeRequest, 
-    HttpServletRequest request)
-            throws URISyntaxException {
+    public ResponseEntity<BillerByCodeResponse> getBillerByCode(@RequestBody BillerByCodeRequest billerByCodeRequest,
+            HttpServletRequest request) throws URISyntaxException {
         log.debug("REST request to getBillerByCode : [{}] ", billerByCodeRequest);
         BillerByCodeResponse response = apiService.getBillerByCode(billerByCodeRequest, request);
         return ResponseEntity.ok().body(response);
@@ -311,5 +343,5 @@ public ResponseEntity<PayementResponse> payBill(@RequestBody PayementRequest pay
             flag = true;
         return flag;
     }
-    
+
 }
