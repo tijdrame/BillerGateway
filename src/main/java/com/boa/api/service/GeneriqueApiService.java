@@ -49,6 +49,7 @@ import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 /**
  * GeneriqueApiService
@@ -168,11 +169,19 @@ public class GeneriqueApiService {
 
                 os.write(postDataBytes);
                 os.flush();
-            } else {
+            } else if (!webServices.getAttribute02().equalsIgnoreCase("GET")){
                 os = conn.getOutputStream();
                 byte[] postDataBytes = requestParam.getBytes();
 
                 os.write(postDataBytes);
+                os.flush();
+                conn.connect();
+                reqStr = urlRequest;
+            }else {
+                os = conn.getOutputStream();
+                // byte[] postDataBytes = requestParam.getBytes();
+
+                // os.write(postDataBytes);
                 os.flush();
                 conn.connect();
                 reqStr = urlRequest;
@@ -402,11 +411,19 @@ public class GeneriqueApiService {
 
                 os.write(postDataBytes);
                 os.flush();
-            } else {
+            } else if (!webServices.getAttribute02().equalsIgnoreCase("GET")){
                 os = conn.getOutputStream();
                 byte[] postDataBytes = requestParam.getBytes();
 
                 os.write(postDataBytes);
+                os.flush();
+                conn.connect();
+                reqStr = urlRequest;
+            }else {
+                os = conn.getOutputStream();
+                // byte[] postDataBytes = requestParam.getBytes();
+
+                // os.write(postDataBytes);
                 os.flush();
                 conn.connect();
                 reqStr = urlRequest;
@@ -628,8 +645,9 @@ public class GeneriqueApiService {
                     }
                     if (it.getParamNameCorresp().equalsIgnoreCase("billAmount")
                             || it.getParamNameCorresp().equalsIgnoreCase("feeAmount")) {
-                        Double amount = Double.valueOf(
-                                object.get(it.getParamName()) != null ? object.get(it.getParamName()).toString() : "0");
+                        Double amount = Double.valueOf(!StringUtils.isEmpty(object.get(it.getParamName()))
+                                ? object.get(it.getParamName()).toString()
+                                : "0");
                         variableName.set(genericResponse, amount);
                     } else
                         variableName.set(genericResponse, (object.get(it.getParamName())).toString());
@@ -649,9 +667,10 @@ public class GeneriqueApiService {
         ResponseResponse responseResponse = apiService.getResponse(responseRequest);
         genericResponse = (CheckFactoryResponse) apiService.clientAbsent(genericResponse, tracking,
                 webServices.getServiceName(),
-                (responseResponse == null || responseResponse.getCode().equals("0000")) ? genericResponse.getCode()
+                (responseResponse == null /* || responseResponse.getCode().equals("0000") */)
+                        ? genericResponse.getCode()
                         : responseResponse.getCode(),
-                (responseResponse == null || responseResponse.getCode().equals("0000"))
+                (responseResponse == null /* || responseResponse.getCode().equals("0000") */)
                         ? genericResponse.getDescription()
                         : responseResponse.getDescription(),
                 request.getRequestURI(), token);
@@ -720,8 +739,11 @@ public class GeneriqueApiService {
                                                             if (itT.getParamNameCorresp().equalsIgnoreCase("billAmount")
                                                                     || itT.getParamNameCorresp()
                                                                             .equalsIgnoreCase("feeAmount")) {
-                                                                Double amount = Double.valueOf(
-                                                                        itTemp.get(itT.getParamName()).toString());
+                                                                Double amount = Double.valueOf(!StringUtils
+                                                                        .isEmpty(object.get(itT.getParamName()))
+                                                                                ? itTemp.get(itT.getParamName())
+                                                                                        .toString()
+                                                                                : "0");
                                                                 variableName2.set(itemResp, amount);
                                                             } else
                                                                 variableName2.set(itemResp,
@@ -769,7 +791,8 @@ public class GeneriqueApiService {
 
                                 if (it.getParamNameCorresp().equalsIgnoreCase("billAmount")
                                         || it.getParamNameCorresp().equalsIgnoreCase("feeAmount")) {
-                                    Double amount = Double.valueOf(object.get(it.getParamName()) != null
+
+                                    Double amount = Double.valueOf(!StringUtils.isEmpty(object.get(it.getParamName()))
                                             ? object.get(it.getParamName()).toString()
                                             : "0");
                                     variableName2.set(itemResp, amount);
@@ -801,9 +824,10 @@ public class GeneriqueApiService {
         ResponseResponse responseResponse = apiService.getResponse(responseRequest);
         genericResponse = (GetBillsByRefResponse) apiService.clientAbsent(genericResponse, tracking,
                 webServices.getServiceName(),
-                (responseResponse == null || responseResponse.getCode().equals("0000")) ? genericResponse.getCode()
+                (responseResponse == null /* || responseResponse.getCode().equals("0000") */)
+                        ? genericResponse.getCode()
                         : responseResponse.getCode(),
-                (responseResponse == null || responseResponse.getCode().equals("0000"))
+                (responseResponse == null /* || responseResponse.getCode().equals("0000") */)
                         ? genericResponse.getDescription()
                         : responseResponse.getDescription(),
                 request.getRequestURI(), token);
@@ -972,11 +996,19 @@ public class GeneriqueApiService {
                 log.info("req= [{}]", reqStr);
                 os.write(postDataBytes);
                 os.flush();
-            } else {
+            } else if (!webServices.getAttribute02().equalsIgnoreCase("GET")){
                 os = conn.getOutputStream();
                 byte[] postDataBytes = requestParam.getBytes();
 
                 os.write(postDataBytes);
+                os.flush();
+                conn.connect();
+                reqStr = urlRequest;
+            }else {
+                os = conn.getOutputStream();
+                // byte[] postDataBytes = requestParam.getBytes();
+
+                // os.write(postDataBytes);
                 os.flush();
                 conn.connect();
                 reqStr = urlRequest;
@@ -1300,9 +1332,10 @@ public class GeneriqueApiService {
         ResponseResponse responseResponse = apiService.getResponse(responseRequest);
         genericResponse = (PayementResponse) apiService.clientAbsent(genericResponse, tracking,
                 webServices.getServiceName(),
-                (responseResponse == null || responseResponse.getCode().equals("0000")) ? genericResponse.getCode()
+                (responseResponse == null /* || responseResponse.getCode().equals("0000") */)
+                        ? genericResponse.getCode()
                         : responseResponse.getCode(),
-                (responseResponse == null || responseResponse.getCode().equals("0000"))
+                (responseResponse == null /* || responseResponse.getCode().equals("0000") */)
                         ? genericResponse.getDescription()
                         : responseResponse.getDescription(),
                 request.getRequestURI(), token);
@@ -1368,10 +1401,35 @@ public class GeneriqueApiService {
         String autho = request.getHeader("Authorization");
         String[] tab = autho.split("Bearer");
 
-        //TODO call paiement wso2 if success process
+        GetAccountRequest accountRequest = new GetAccountRequest();
+        accountRequest.setAccountType(ICodeDescResponse.ACCOUNT_PRINCIPAL);
+        accountRequest.setBillerCode(nPaiementRequest.getBillerCode());
+        GetAccountResponse accountResponse = apiService.getBillerAccount(accountRequest, request);
+        if (accountResponse == null || accountResponse.getNumAccount() == null) {
+            genericResponse = (NotificationPaiementResponse) apiService.clientAbsent(genericResponse, tracking,
+                    "getBillAccount in paiement", ICodeDescResponse.ECHEC_CODE,
+                    ICodeDescResponse.ACCOUNT_PRINCIPAL_NON_TROUVE, request.getRequestURI(), tab[1]);
+            return genericResponse;
+        }
+        nPaiementRequest.setCompteCredit(accountResponse.getNumAccount());
+        nPaiementRequest.valDisponible("V").disponible("DISPONIBLE").libelle("Paiement CNPS");
+
+        GetBillFeesRequest billFeesRequest = new GetBillFeesRequest();
+        billFeesRequest.setBillerCode(nPaiementRequest.getBillerCode());
+        billFeesRequest.setMontant(nPaiementRequest.getAmount().toString());// TODO montant du getBill
+        billFeesRequest.setTypeCanal(nPaiementRequest.getCanal());
+        GetBillFeesResponse billFeesResponse = apiService.getBillFees(billFeesRequest, request);
+        if (billFeesResponse == null || billFeesResponse.getMontantFrais() == null) {
+            genericResponse = (NotificationPaiementResponse) apiService.clientAbsent(genericResponse, tracking,
+                    "getBillFees in paiement", ICodeDescResponse.ECHEC_CODE, ICodeDescResponse.FEES_NON_TROUVE,
+                    request.getRequestURI(), tab[1]);
+            return genericResponse;
+        }
+        nPaiementRequest.setMntfrais(billFeesResponse.getMontantFrais());
+        // TODO call paiement wso2 if success process
 
         WebServices webServices = webServicesService.getWebServiceByParams(nPaiementRequest.getBillerCode(),
-        notifPaiementService);
+                notifPaiementService);
         log.info("ws = [{}]", webServices);
         if (webServices == null) {
             return genericResponse = (NotificationPaiementResponse) apiService.clientAbsent(genericResponse, tracking,
@@ -1400,10 +1458,10 @@ public class GeneriqueApiService {
         log.info("req notif after  = [{}]", requestParam);
         HttpURLConnection conn = null;
         try {
-            conn = utils.doConnexion(webServices.getEndPointExpose(), requestParam, webServices.getProtocole(), null, null,
-                    false, null, null, webServices.getAttribute02());
+            conn = utils.doConnexion(webServices.getEndPointExpose(), requestParam, webServices.getProtocole(), null,
+                    null, false, null, null, webServices.getAttribute02());
             BufferedReader br = null;
-            JSONObject obj = new JSONObject();
+            // JSONObject obj = new JSONObject();
             String result = "";
             log.info("resp code notif paiement [{}]", (conn != null ? conn.getResponseCode() : ""));
             if (conn.getResponseCode() == 200) {
@@ -1414,11 +1472,11 @@ public class GeneriqueApiService {
                     result += ligne;
                     ligne = br.readLine();
                 }
-                log.info("resp ===== [{}]", result);
+                log.info("resp notif paiement ===== [{}]", result);
                 tracking.setResponseTr(result);
 
-                constructRespNotif(webServices, result, genericResponse, nPaiementRequest.getBillerCode(),
-                        nPaiementRequest.getLangue(), tracking, request, tab[1]);
+                constructRespNotif(webServices, result, genericResponse, nPaiementRequest.getLangue(),
+                         tracking, request, tab[1], nPaiementRequest, accountResponse, billFeesResponse);
                 log.info("json ==> [{}]", result);
 
             } else {// !=200
@@ -1432,8 +1490,8 @@ public class GeneriqueApiService {
                 log.info("resp ===== [{}]", result);
 
                 // resp !=200 for json
-                constructRespNotif(webServices, result, genericResponse, nPaiementRequest.getBillerCode(),
-                        nPaiementRequest.getLangue(), tracking, request, tab[1]);
+                constructRespNotif(webServices, result, genericResponse, nPaiementRequest.getLangue(),
+                         tracking, request, tab[1], nPaiementRequest, accountResponse, billFeesResponse);
             }
 
         } catch (Exception e) {
@@ -1449,8 +1507,9 @@ public class GeneriqueApiService {
     }
 
     private NotificationPaiementResponse constructRespNotif(WebServices webServices, String result,
-            NotificationPaiementResponse genericResponse, String billerCode, String langue, Tracking tracking,
-            HttpServletRequest request, String token) throws Exception {
+            NotificationPaiementResponse genericResponse, String langue, Tracking tracking,
+            HttpServletRequest request, String token, NotificationPaiementRequest paiementRequest,
+            GetAccountResponse accountResponse, GetBillFeesResponse billFeesResponse) throws Exception {
         log.info("resul json to build [{}]", result);
         if (result == null) {
             genericResponse.setCode(ICodeDescResponse.ECHEC_CODE);
@@ -1466,21 +1525,27 @@ public class GeneriqueApiService {
                 if (object.toString().contains(it.getParamName())) {
                     Field variableName = genericResponse.getClass().getDeclaredField(it.getParamNameCorresp());
                     variableName.setAccessible(true);
+                    Boolean flag = false;
                     if (it.getParentResponse() != null) {
                         String[] tt = it.getParentResponse().split("#");
+                        
                         for (int i = 0; i < tt.length; i++) {
+                            flag = false;
                             if (object.toString().contains(tt[i])) {
                                 log.info("tti [{}]", tt[i]);
                                 object = object.getJSONObject(tt[i]);
+                                flag = true;
                             }
                         }
                     }
                     if (it.getParamNameCorresp().equalsIgnoreCase("amount")
                             || it.getParamNameCorresp().equalsIgnoreCase("feeAmount")) {
-                        Double amount = Double.valueOf(
-                                object.get(it.getParamName()) != null ? object.get(it.getParamName()).toString() : "0");
+
+                        Double amount = Double.valueOf(!StringUtils.isEmpty(object.get(it.getParamName()))
+                                ? object.get(it.getParamName()).toString()
+                                : "0");
                         variableName.set(genericResponse, amount);
-                    } else
+                    } else if(flag)
                         variableName.set(genericResponse, (object.get(it.getParamName())).toString());
                     // variableName.set(genericResponse, object.get(it.getParamName()).toString());
                 }
@@ -1489,7 +1554,7 @@ public class GeneriqueApiService {
 
         log.info("resp generic notif [{}]", genericResponse);
         ResponseRequest responseRequest = new ResponseRequest();
-        responseRequest.setBillerCode(billerCode);
+        responseRequest.setBillerCode(paiementRequest.getBillerCode());
         responseRequest.setLangue(langue);
         // genericResponse.setCode(code);
         responseRequest.setRetourCode(genericResponse.getCode());
@@ -1498,12 +1563,20 @@ public class GeneriqueApiService {
         ResponseResponse responseResponse = apiService.getResponse(responseRequest);
         genericResponse = (NotificationPaiementResponse) apiService.clientAbsent(genericResponse, tracking,
                 webServices.getServiceName(),
-                (responseResponse == null || responseResponse.getCode().equals("0000")) ? genericResponse.getCode()
+                (responseResponse == null /* || responseResponse.getCode().equals("0000") */)
+                        ? genericResponse.getCode()
                         : responseResponse.getCode(),
-                (responseResponse == null || responseResponse.getCode().equals("0000"))
+                (responseResponse == null /* || responseResponse.getCode().equals("0000") */)
                         ? genericResponse.getDescription()
                         : responseResponse.getDescription(),
                 request.getRequestURI(), token);
+        TransactionGlobal trG = apiService.createTransactionB(paiementRequest.getBillerCode(), paiementRequest.getCanal(),
+          paiementRequest.getCompteDeb(), paiementRequest.getBillerReference(), genericResponse.getCode(),
+                "nameCustommer", accountResponse.getNumAccount(),billFeesResponse.getMontantFrais(), paiementRequest.getBillNum(),
+                "", paiementRequest.getAmount(),responseResponse.getDescription(), "");
+                //(String billerCode, String canal, String compteDeb,String reference, String codeRetour,
+    //String nom, String creditAccount, Double frais, String numFacture, String client, Double montant,
+    //String msgFr, String telephone)
         return genericResponse;
     }
 }

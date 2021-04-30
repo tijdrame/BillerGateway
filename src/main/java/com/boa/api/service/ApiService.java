@@ -25,6 +25,7 @@ import com.boa.api.request.GetBillFeesRequest;
 import com.boa.api.request.GetBillersRequest;
 import com.boa.api.request.GetBillsByNumRequest;
 import com.boa.api.request.GetBillsByRefJiramaReq;
+import com.boa.api.request.NotificationPaiementRequest;
 import com.boa.api.request.PayementRequest;
 import com.boa.api.request.RecuPaiementRequest;
 import com.boa.api.request.ResponseRequest;
@@ -1434,6 +1435,41 @@ public class ApiService {
         transactionGlobal.setTelephone(payementRequest.getPhoneNumber());
         transactionGlobal.setBeneficiaire(payementRequest.getBillerCode());
         transactionGlobal.setReferenceTransaction(payementRequest.getBillRefTrx());
+        //transactionGlobal.setMessageEn(msgEn);
+        transactionGlobal.setMessageFr(msgFr);
+        TransactionGlobal trG = transactionGlobalService.save(transactionGlobal);
+        return trG;
+    }
+
+    public TransactionGlobal createTransactionB(String billerCode, String canal, String compteDeb,String reference, String codeRetour,
+    String nom, String creditAccount, Double frais, String numFacture, String client, Double montant,
+    String msgFr, String telephone){
+        Long idBill = billerTService.findByBillerCode(billerCode);
+        if(idBill==null) return null;
+        BillerT billerT = new BillerT();
+        billerT.setId(idBill);
+        //if(billerT==null || billerT.getId()==null)return null;
+        //nom = nom!=null?nom:"";
+        TransactionGlobal transactionGlobal = new TransactionGlobal();
+        transactionGlobal.setBillerT(billerT);
+        transactionGlobal.setChannel(canal);
+        transactionGlobal.setClient(client);
+        transactionGlobal.setCodeRetour(codeRetour);
+        transactionGlobal.setCreatedDate(LocalDate.now());
+        transactionGlobal.setCreditAccount(creditAccount);
+        transactionGlobal.setDatePaiement(LocalDate.now());
+        transactionGlobal.setDebitAccount(compteDeb);
+        transactionGlobal.setDeviceId("");
+        transactionGlobal.setEcheance("");
+        transactionGlobal.setFrais(frais);
+        transactionGlobal.setMontant(montant);
+        transactionGlobal.setNom(nom);
+        transactionGlobal.setNumeroFacture(numFacture);
+        transactionGlobal.setPrenom(nom);
+        transactionGlobal.setReferenceFacture(null);
+        transactionGlobal.setTelephone(telephone);
+        transactionGlobal.setBeneficiaire(billerCode);
+        transactionGlobal.setReferenceTransaction(reference);
         //transactionGlobal.setMessageEn(msgEn);
         transactionGlobal.setMessageFr(msgFr);
         TransactionGlobal trG = transactionGlobalService.save(transactionGlobal);

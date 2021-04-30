@@ -51,11 +51,26 @@ public class Utils {
             conn.setConnectTimeout(applicationProperties.getTimeOut());// 5000 ms <=> 5s
             conn.setReadTimeout(applicationProperties.getTimeOut());// 5000 ms <=> 5s
 
+            if (!protocole.equalsIgnoreCase("GET")) {
+                
+                os = conn.getOutputStream();
+                byte[] postDataBytes = params.getBytes();
+                log.info("req= [{}]", params);
+                os.write(postDataBytes);
+                os.flush();
+            } else {
+                os = conn.getOutputStream();
+                //byte[] postDataBytes = params.getBytes();
+
+                //os.write(postDataBytes);
+                os.flush();       
+            }
+            conn.connect();
             // tracking.setRequestTr(jsonString);
-            os = conn.getOutputStream();
-            byte[] postDataBytes = params.getBytes();
-            os.write(postDataBytes);
-            os.flush();
+            //os = conn.getOutputStream();
+            //byte[] postDataBytes = params.getBytes();
+            //os.write(postDataBytes);
+            //os.flush();
         } catch (Exception e) {
             log.error("Error in doConn endpoint[{}], params [{}] & trace [{}]", e);
             return null;

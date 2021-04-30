@@ -9,17 +9,19 @@ public class NotificationPaiementResponse extends GenericResponse{
     private String varString1;
     private String varString2;
     private String varString3;
+    protected String code;
 
     public NotificationPaiementResponse() {
     }
 
-    public NotificationPaiementResponse(Double amount, String reference, String numberTransaction, String varString1, String varString2, String varString3) {
+    public NotificationPaiementResponse(Double amount, String reference, String numberTransaction, String varString1, String varString2, String varString3, String code) {
         this.amount = amount;
         this.reference = reference;
         this.numberTransaction = numberTransaction;
         this.varString1 = varString1;
         this.varString2 = varString2;
         this.varString3 = varString3;
+        this.code = code;
     }
 
     public Double getAmount() {
@@ -70,6 +72,14 @@ public class NotificationPaiementResponse extends GenericResponse{
         this.varString3 = varString3;
     }
 
+    public String getCode() {
+        return this.code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
     public NotificationPaiementResponse amount(Double amount) {
         setAmount(amount);
         return this;
@@ -100,6 +110,11 @@ public class NotificationPaiementResponse extends GenericResponse{
         return this;
     }
 
+    public NotificationPaiementResponse code(String code) {
+        setCode(code);
+        return this;
+    }
+
     @Override
     public String toString() {
         return "{" +
@@ -109,6 +124,7 @@ public class NotificationPaiementResponse extends GenericResponse{
             ", varString1='" + getVarString1() + "'" +
             ", varString2='" + getVarString2() + "'" +
             ", varString3='" + getVarString3() + "'" +
+            ", code='" + getCode() + "'" +
             "}";
     }
 
