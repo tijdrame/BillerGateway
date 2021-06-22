@@ -1,5 +1,8 @@
 package com.boa.api.request;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class NotificationPaiementRequest {
     private String billerCode, billNum;
     private String langue, channelType;
