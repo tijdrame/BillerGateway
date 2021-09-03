@@ -1,5 +1,8 @@
 package com.boa.api.response;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class NotificationPaiementResponse extends GenericResponse{
     
     private Double amount;

@@ -297,7 +297,7 @@ public class ApiResource {
     public ResponseEntity<NotificationPaiementResponse> notificationPaiement(
             @RequestBody NotificationPaiementRequest nPaiementRequest, HttpServletRequest request)
             throws URISyntaxException {
-        log.debug("REST request to notificationPaiement : {}", nPaiementRequest);
+        log.info("REST request for notificationPaiement : {}", nPaiementRequest);
 
         NotificationPaiementResponse response = generiqueApiService.notificationPaiement(nPaiementRequest, request);
         return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);

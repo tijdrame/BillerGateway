@@ -968,7 +968,7 @@ public class ApiService {
                 log.info("result ===== [{}]", result);
                 obj = new JSONObject(result);//("billersList");
                 
-                if (obj == null || obj.toString().contains("null")) {
+                if (obj == null || obj.getJSONObject("billersList")==null || obj.getJSONObject("billersList").get("billersList")==null) {
                     log.info("obj res ===== [{}]", obj.toString());
                     genericResponse.setCode(ICodeDescResponse.ECHEC_CODE);
                     genericResponse.setDateResponse(Instant.now());
@@ -983,7 +983,7 @@ public class ApiService {
                     tracking.setTokenTr(tab[1]);
                     tracking.setDateRequest(Instant.now());
                     os.close();
-                } else if (!obj.toString().contains("null")) {
+                } else if (obj != null && obj.getJSONObject("billersList")!=null && obj.getJSONObject("billersList").get("billersList")!=null) {
                     obj = new JSONObject(result).getJSONObject("billersList");//("billersList");
                     //log.info("succ == [{}]", obj.toString());
 
@@ -1540,7 +1540,7 @@ public class ApiService {
                     tracking.setTokenTr(tab[1]);
                     tracking.setDateRequest(Instant.now());
                     os.close();
-                } else if (obj!=null && !obj.toString().contains("null")) {
+                } else if (obj != null && obj.getJSONObject("biller").toString() != null && obj.getJSONObject("biller").get("biller") != null) {
                     obj = new JSONObject(result).getJSONObject("biller"); 
                     log.info("succ == [{}]", obj.toString());
 
