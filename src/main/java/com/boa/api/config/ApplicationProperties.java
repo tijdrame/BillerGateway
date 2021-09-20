@@ -12,6 +12,16 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ApplicationProperties {
 
     private Integer timeOut;
+    private String jirama;
+    private String codeJirama;
+
+    public String getJirama() {
+        return this.jirama;
+    }
+
+    public void setJirama(String jirama) {
+        this.jirama = jirama;
+    }
 
     public Integer getTimeOut() {
         return this.timeOut;
@@ -19,6 +29,14 @@ public class ApplicationProperties {
 
     public void setTimeOut(Integer timeOut) {
         this.timeOut = timeOut;
+    }
+
+    public String getCodeJirama() {
+        return this.codeJirama;
+    }
+
+    public void setCodeJirama(String codeJirama) {
+        this.codeJirama = codeJirama;
     }
 
 }

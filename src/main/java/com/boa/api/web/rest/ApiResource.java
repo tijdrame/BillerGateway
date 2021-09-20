@@ -116,22 +116,23 @@ public class ApiResource {
 
     @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, consumes = {
             MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, path = "/paymentReceipt")
-    public ResponseEntity<RecuPaiementResponse> recuPaiement(@RequestBody PaymentReceiptRequest paymentReceiptRequest,
+    public ResponseEntity<RecuPaiementResponse> recuPaiement(@RequestBody RecuPaiementRequest cardsRequest,
             HttpServletRequest request) throws URISyntaxException {
-        log.debug("REST request to recuPaiement : {}", paymentReceiptRequest);
-        RecuPaiementRequest cardsRequest = new RecuPaiementRequest();
-        cardsRequest.setRefPaie(paymentReceiptRequest.getPayBillRef());
-        cardsRequest.setLangue(paymentReceiptRequest.getLangue());
-        cardsRequest.setBillerCode(paymentReceiptRequest.getBillerCode());
-        RecuPaiementResponse response = new RecuPaiementResponse();
-        if (controleParam(cardsRequest.getRefPaie()) || controleParam(cardsRequest.getLangue())) {
-            response.setCode(ICodeDescResponse.PARAM_ABSENT_CODE);
-            response.setDateResponse(Instant.now());
-            response.setDescription(ICodeDescResponse.PARAM_DESCRIPTION);
-            return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
-        }
-        response = apiService.recuPaiement(cardsRequest, request);
-        return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
+                log.debug("REST request to recuPaiement : {}", cardsRequest);
+                /*RecuPaiementRequest cardsRequest = new RecuPaiementRequest();
+                cardsRequest.setRefPaie(paymentReceiptRequest.getPayBillRef());
+                cardsRequest.setLangue(paymentReceiptRequest.getLangue());
+                cardsRequest.setBillerCode(paymentReceiptRequest.getBillerCode());*/
+                RecuPaiementResponse response = new RecuPaiementResponse();
+                if (controleParam(cardsRequest.getCashingRef()) || controleParam(cardsRequest.getLangue())||
+                    controleParam(cardsRequest.getBillNum())|| controleParam(cardsRequest.getBillerCode())) {
+                    response.setCode(ICodeDescResponse.PARAM_ABSENT_CODE);
+                    response.setDateResponse(Instant.now());
+                    response.setDescription(ICodeDescResponse.PARAM_DESCRIPTION);
+                    return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
+                }
+                response = apiService.recuPaiement(cardsRequest, request);
+                return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
     }
 
     @PostMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, consumes = {

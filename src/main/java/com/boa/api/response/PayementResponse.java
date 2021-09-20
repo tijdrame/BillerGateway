@@ -12,15 +12,15 @@ public class PayementResponse extends GenericResponse{
     protected String code;
     protected String description;
     protected Instant dateResponse;
-    //private AnnulationPaiement annulationPaiement;
+    private AnnulationPaiement annulationPaiement;
     private String annulationCode, annulationMsg;
-    /*public AnnulationPaiement getAnnulationPaiement() {
+    public AnnulationPaiement getAnnulationPaiement() {
         return this.annulationPaiement;
     }
 
     public void setAnnulationPaiement(AnnulationPaiement annulationPaiement) {
         this.annulationPaiement = annulationPaiement;
-    }*/
+    }
 
     public String getCode() {
         return this.code;

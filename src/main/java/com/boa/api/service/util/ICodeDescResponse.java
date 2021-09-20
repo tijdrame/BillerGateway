@@ -45,6 +45,7 @@ public interface ICodeDescResponse {
     
     public static Integer INSTITUTION_ABSENT_CODE = 407;
     public static String INSTITUTION_ABSENT_DESC = "Parametre client Absent";
+    public static String NO_BILLER_FOR_THIS_CATEG = "Pas de Biller trouve pour cette categorie.";
     /*------*/
 
 }

@@ -15,11 +15,13 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.boa.api.config.ApplicationProperties;
 import com.boa.api.domain.Tracking;
 import com.boa.api.domain.TransactionGlobal;
 import com.boa.api.domain.WebServiceParams;
 import com.boa.api.domain.WebServices;
 import com.boa.api.request.BillerByCodeRequest;
+import com.boa.api.request.CheckFactoryRequest;
 import com.boa.api.request.GetAccountRequest;
 import com.boa.api.request.GetBillFeesRequest;
 import com.boa.api.request.GetBillRequest;
@@ -40,6 +42,9 @@ import com.boa.api.response.PayementResponse;
 import com.boa.api.response.ResponseResponse;
 import com.boa.api.service.util.ICodeDescResponse;
 import com.boa.api.service.util.Utils;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,15 +93,18 @@ public class GeneriqueApiService {
 
     @Value("${notification.service}")
     private String notifPaiementService;
+    private final ApplicationProperties applicationProperties;
+
 
     public GeneriqueApiService(ApiService apiService, WebServicesService webServicesService, UserService userService,
-            TrackingService trackingService, Utils utils) {
+            TrackingService trackingService, Utils utils, ApplicationProperties applicationProperties) {
         this.apiService = apiService;
         // this.paramFilialeRepository = paramFilialeRepository;
         this.webServicesService = webServicesService;
         this.userService = userService;
         this.trackingService = trackingService;
         this.utils = utils;
+        this.applicationProperties = applicationProperties;
         // this.initializer = initializer;
     }
 
@@ -105,6 +113,7 @@ public class GeneriqueApiService {
         // JsonObject rootobj = root.getAsJsonObject(); //May be an array, may be an
         // object.
         CheckFactoryResponse genericResponse = new CheckFactoryResponse();
+        
         Tracking tracking = new Tracking();
         String autho = request.getHeader("Authorization");
         String[] tab = autho.split("Bearer");
@@ -136,6 +145,28 @@ public class GeneriqueApiService {
             }
         }
         log.info("req param after 3 = [{}]", requestParam);
+        //if(billRequest.getBillerCode().equalsIgnoreCase("jirama")){
+        if(applicationProperties.getCodeJirama().equalsIgnoreCase("jirama")){
+            ObjectMapper mapper = new ObjectMapper();
+            CheckFactoryRequest cardsRequest;
+            try {
+                cardsRequest = mapper.readValue(requestParam, CheckFactoryRequest.class);
+                genericResponse = apiService.checkFactory(cardsRequest, request);
+                return genericResponse;
+            } catch (Exception e) {
+                String msgErr = "Exception lors du parsing " + requestParam;
+                log.info(msgErr+" {}", e);
+            }
+            /*cardsRequest.setBillerCnss();
+            cardsRequest.setBillerCode(billRequest.getBillerCode());
+            //cardsRequest.setBillerJirama();
+            cardsRequest.setChannel(billRequest.getChannelType());
+            cardsRequest.setLangue(billRequest.getLangue());
+            cardsRequest.setRefenca(billRequest.);
+            cardsRequest.setTelcli();
+            cardsRequest.setVnumFact();*/
+            
+        }
         URL url;
         OutputStream os = null;
         String urlRequest = webServices.getEndPointExpose();
@@ -967,6 +998,9 @@ public class GeneriqueApiService {
                 }
             }
         }
+        /*if(payementRequest.getBillerCode().equalsIgnoreCase("jirama")){
+            payementRequest.setAmount(payementRequest.getAmount() /100);
+        }*/
         log.info("req param after 3 = [{}]", requestParam);
 
         URL url;
@@ -1331,14 +1365,14 @@ public class GeneriqueApiService {
 
         ResponseResponse responseResponse = apiService.getResponse(responseRequest);
         genericResponse = (PayementResponse) apiService.clientAbsent(genericResponse, tracking,
-                webServices.getServiceName(),
+                webServices.getServiceName(), 
                 (responseResponse == null /* || responseResponse.getCode().equals("0000") */)
                         ? genericResponse.getCode()
                         : responseResponse.getCode(),
                 (responseResponse == null /* || responseResponse.getCode().equals("0000") */)
                         ? genericResponse.getDescription()
                         : responseResponse.getDescription(),
-                request.getRequestURI(), token);
+                request.getRequestURI(), token); 
         TransactionGlobal trG = apiService.createTransaction(payementRequest, genericResponse.getCode(),
                 checkFactoryResponse.getCustomerName(), accountResponse.getNumAccount(),
                 billFeesResponse.getMontantFrais(), checkFactoryResponse.getBillNum(),

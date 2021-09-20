@@ -9,9 +9,8 @@ import java.net.URL;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.regex.Pattern;
-
 import javax.servlet.http.HttpServletRequest;
-
+import com.boa.api.config.ApplicationProperties;
 import com.boa.api.domain.BillerT;
 import com.boa.api.domain.ParamFiliale;
 import com.boa.api.domain.Tracking;
@@ -22,19 +21,19 @@ import com.boa.api.request.CheckCustomerRequest;
 import com.boa.api.request.CheckFactoryRequest;
 import com.boa.api.request.GetAccountRequest;
 import com.boa.api.request.GetBillFeesRequest;
+import com.boa.api.request.GetBillersByCategRequest;
 import com.boa.api.request.GetBillersRequest;
 import com.boa.api.request.GetBillsByNumRequest;
 import com.boa.api.request.GetBillsByRefJiramaReq;
-import com.boa.api.request.NotificationPaiementRequest;
 import com.boa.api.request.PayementRequest;
 import com.boa.api.request.RecuPaiementRequest;
 import com.boa.api.request.ResponseRequest;
 import com.boa.api.response.AnnulationPaiement;
 import com.boa.api.response.Biller;
 import com.boa.api.response.BillerByCodeResponse;
+import com.boa.api.response.CategBillersResponse;
 import com.boa.api.response.CheckCustomerResponse;
 import com.boa.api.response.CheckFactoryResponse;
-import com.boa.api.response.CnssCheckFactResponse;
 import com.boa.api.response.ExceptionResponse;
 import com.boa.api.response.FactureDispoResponse;
 import com.boa.api.response.FacuresDispo;
@@ -44,7 +43,6 @@ import com.boa.api.response.GetBillFeesResponse;
 import com.boa.api.response.GetBillersResponse;
 import com.boa.api.response.GetBillsByRefResponse;
 import com.boa.api.response.ItemResp;
-import com.boa.api.response.PaieMobile;
 import com.boa.api.response.PayementResponse;
 import com.boa.api.response.RecuPaiementResponse;
 import com.boa.api.response.ResponseResponse;
@@ -52,13 +50,11 @@ import com.boa.api.service.util.ICodeDescResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.configurationprocessor.json.JSONArray;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import io.micrometer.core.ipc.http.HttpSender.Request;
 
 /**
  * ApiService
@@ -74,24 +70,28 @@ public class ApiService {
     private final UserService userService;
     private final TransactionGlobalService transactionGlobalService;
     private final BillerTService billerTService;
+    private final ApplicationProperties applicationProperties;
 
     public ApiService(ParamFilialeRepository paramFilialeRepository, TrackingService trackingService,
-            UserService userService, TransactionGlobalService transactionGlobalService,
-            BillerTService billerTService) {
+            UserService userService, TransactionGlobalService transactionGlobalService, BillerTService billerTService,
+            ApplicationProperties applicationProperties) {
         this.paramFilialeRepository = paramFilialeRepository;
         this.trackingService = trackingService;
         this.userService = userService;
         this.transactionGlobalService = transactionGlobalService;
         this.billerTService = billerTService;
+        this.applicationProperties = applicationProperties;
     }
 
     // getBill
-    public CheckFactoryResponse checkFactoryJir(CheckFactoryRequest cardsRequest, HttpServletRequest request) {
+    public CheckFactoryResponse checkFactory(CheckFactoryRequest cardsRequest, HttpServletRequest request) {
+        log.info("enter in checkFactory [{}]", cardsRequest);
         ParamFiliale filiale = paramFilialeRepository.findByCodeFiliale("checkFactory");
         Tracking tracking = new Tracking();
         CheckFactoryResponse genericResponse = new CheckFactoryResponse();
         String autho = request.getHeader("Authorization");
         String[] tab = autho.split("Bearer");
+
         if (filiale == null) {
             genericResponse = (CheckFactoryResponse) clientAbsent(genericResponse, tracking, "getBill",
                     ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.SERVICE_ABSENT_DESC,
@@ -101,7 +101,7 @@ public class ApiService {
         }
         OutputStream os = null;
         try {
-            
+
             log.info("end point wso2== [{}]", filiale.getEndPoint());
             URL url = new URL(filiale.getEndPoint());
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -111,17 +111,29 @@ public class ApiService {
             conn.setRequestProperty("Accept", "application/xml");
 
             StringBuilder builder = new StringBuilder();
+            /*
+             * builder.append("<send_request><request>"); builder.append(
+             * "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:urn=\"urn:WebservicePlus\">"
+             * ); builder.append("<soapenv:Body><urn:Check_facture_ptf><urn:vnum_fact>" +
+             * cardsRequest.getVnumFact() + "</urn:vnum_fact>");
+             * builder.append("<urn:vRefenca>" + cardsRequest.getRefenca() +
+             * "</urn:vRefenca><urn:telcli>" + cardsRequest.getTelcli() + "</urn:telcli>");
+             * builder.append("</urn:Check_facture_ptf></soapenv:Body></soapenv:Envelope>");
+             * builder.append("</request>"); builder.append( "<url_link>" +
+             * applicationProperties.getJirama() +
+             * "</url_link><url_content>xml</url_content>");
+             * builder.append("</send_request>");
+             */
             builder.append("<send_request><request>");
             builder.append(
                     "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:urn=\"urn:WebservicePlus\">");
-            builder.append("<soapenv:Body><urn:Check_facture_ptf><urn:vnum_fact>" + cardsRequest.getVnumFact()
+            builder.append("<soapenv:Body><urn:Check_fact_cbarre><urn:vnum_fact>" + cardsRequest.getVnumFact()
                     + "</urn:vnum_fact>");
-            builder.append("<urn:vRefenca>" + cardsRequest.getRefenca() + "</urn:vRefenca><urn:telcli>"
-                    + cardsRequest.getTelcli() + "</urn:telcli>");
-            builder.append("</urn:Check_facture_ptf></soapenv:Body></soapenv:Envelope>");
+            builder.append("<urn:telcli>" + cardsRequest.getTelcli() + "</urn:telcli>");
+            builder.append("</urn:Check_fact_cbarre></soapenv:Body></soapenv:Envelope>");
             builder.append("</request>");
             builder.append(
-                    "<url_link>" + ICodeDescResponse.ADRESSE_JIRAMA + "</url_link><url_content>xml</url_content>");
+                    "<url_link>" + applicationProperties.getJirama() + "</url_link><url_content>xml</url_content>");
             builder.append("</send_request>");
 
             /*
@@ -149,20 +161,20 @@ public class ApiService {
                 // System.out.println("err=" + result);
                 log.info("resp ===== [{}]", result);
                 obj = new JSONObject(result).getJSONObject("response").getJSONObject("Envelope").getJSONObject("Body");
-                log.info("test== [{}]", obj.getJSONObject("Check_facture_ptfResponse"));
-                if (obj.getJSONObject("Check_facture_ptfResponse")
+                log.info("test== [{}]", obj.getJSONObject("Check_fact_cbarreResponse"));
+                if (obj.getJSONObject("Check_fact_cbarreResponse")
                         // obj.getJSONObject("Check_facture_ptfResponse")
                         .toString().contains("P000")
-                        || obj.getJSONObject("Check_facture_ptfResponse").toString().contains("N000")
-                        || obj.getJSONObject("Check_facture_ptfResponse").toString().contains("?")) {
-                    JSONObject errObj = obj.getJSONObject("Check_facture_ptfResponse");
+                        || obj.getJSONObject("Check_fact_cbarreResponse").toString().contains("N000")
+                        || obj.getJSONObject("Check_fact_cbarreResponse").toString().contains("?")) {
+                    JSONObject errObj = obj.getJSONObject("Check_fact_cbarreResponse");
                     ExceptionResponse exceptionResponse = new ExceptionResponse();
-                    log.error("msg err = [{}]", errObj.get("Check_facture_ptfResult"));
+                    log.error("msg err = [{}]", errObj.get("Check_fact_cbarreResult"));
                     String[] tabErr = new String[2];
 
-                    tabErr = errObj.get("Check_facture_ptfResult").toString().split("#");
-                    exceptionResponse.setNumber(tabErr[0]);
-                    exceptionResponse.setDescription(tabErr[1]);
+                    tabErr = errObj.get("Check_fact_cbarreResult").toString().split("#");
+                    exceptionResponse.setNumber(tabErr[0].trim());
+                    exceptionResponse.setDescription(tabErr[1].trim());
                     ResponseRequest responseRequest = new ResponseRequest();
                     responseRequest.setBillerCode(cardsRequest.getBillerCode().toUpperCase());
                     responseRequest.setLangue(cardsRequest.getLangue());
@@ -192,14 +204,14 @@ public class ApiService {
                     // trackingService.save(tracking);
                     os.close();
                     // return genericResponse;
-                } else if (obj.toString().contains("Check_facture_ptfResult")) {
+                } else if (obj.toString().contains("Check_fact_cbarreResult")) {
                     log.info("succ == [{}]", obj.toString());
-                    String succesOb = obj.getJSONObject("Check_facture_ptfResponse")
-                            .getString("Check_facture_ptfResult");
+                    String succesOb = obj.getJSONObject("Check_fact_cbarreResponse")
+                            .getString("Check_fact_cbarreResult");
                     log.info("succc === [{}]", succesOb.toString());
                     String[] tabSuccess = succesOb.split("#");
-
-                    genericResponse.setBillAmount(Double.valueOf(tabSuccess[3].trim()));
+                    Double amount = Double.valueOf(tabSuccess[3].trim()) * 100;
+                    genericResponse.setBillAmount(amount);
                     genericResponse.setCustomerName(tabSuccess[5].trim());
                     genericResponse.setRequierNumber(tabSuccess[4].trim());
                     genericResponse.setBillNum(tabSuccess[0].trim());
@@ -212,7 +224,7 @@ public class ApiService {
                     responseRequest.setLangue(cardsRequest.getLangue());
                     responseRequest.setRetourCode("200");
                     responseRequest.setServiceName(ICodeDescResponse.SERVICE_CHECK_REF_PTF);
- 
+
                     ResponseResponse responseResponse = getResponse(responseRequest);
 
                     genericResponse = (CheckFactoryResponse) clientAbsent(genericResponse, tracking, "getBill",
@@ -229,9 +241,9 @@ public class ApiService {
                     billFeesRequest.setMontant(genericResponse.getBillAmount().toString());
                     billFeesRequest.setTypeCanal(cardsRequest.getChannel());
                     GetBillFeesResponse billFeesResponse = getBillFees(billFeesRequest, request);
-                    if(billFeesResponse != null ) genericResponse.setFeeAmount(billFeesResponse.getMontantFrais());
-                            
-                
+                    if (billFeesResponse != null)
+                        genericResponse.setFeeAmount(billFeesResponse.getMontantFrais().doubleValue() * 100);
+
                     os.close();
                     // return genericResponse;
                 }
@@ -254,16 +266,15 @@ public class ApiService {
             }
             log.error("errorrr== [{}]", e.getMessage());
             genericResponse = (CheckFactoryResponse) clientAbsent(genericResponse, tracking, "getBill",
-                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC,
+                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC + e.getMessage(),
                     request.getRequestURI(), tab[1]);
-            // return genericResponse;
-
         }
         trackingService.save(tracking);
         return genericResponse;
     }
 
     public RecuPaiementResponse recuPaiement(RecuPaiementRequest cardsRequest, HttpServletRequest request) {
+        log.info("Enter in recuPaiement == [{}]", cardsRequest);
         ParamFiliale filiale = paramFilialeRepository.findByCodeFiliale("checkFactory");
         Tracking tracking = new Tracking();
         RecuPaiementResponse genericResponse = new RecuPaiementResponse();
@@ -280,6 +291,25 @@ public class ApiService {
         OutputStream os = null;
         try {
 
+            CheckFactoryRequest checkFactoryRequest = new CheckFactoryRequest();
+            checkFactoryRequest.setBillerCode(cardsRequest.getBillerCode());
+            checkFactoryRequest.setLangue(cardsRequest.getLangue());
+            checkFactoryRequest.setRefenca(cardsRequest.getCashingRef());
+            checkFactoryRequest.setVnumFact(cardsRequest.getBillNum());
+            CheckFactoryResponse checkFactoryResponse = checkFactory(checkFactoryRequest, request);
+            log.info("CheckFactoryResponse <==> [{}]", checkFactoryResponse.toString());
+            if (checkFactoryResponse == null || (checkFactoryResponse.getExceptionResponse() != null
+                    && !checkFactoryResponse.getExceptionResponse().getNumber().contains("P0000")
+                    && checkFactoryResponse.getBillAmount() == null)) {
+                genericResponse = (RecuPaiementResponse) clientAbsent(genericResponse, tracking,
+                        "getBill in recu facture", ICodeDescResponse.ECHEC_CODE, ICodeDescResponse.FACTURE_NON_TROUVE,
+                        request.getRequestURI(), tab[1]);
+                return genericResponse;
+            }
+            String numSession = checkFactoryResponse.getSessionNum() != null
+                    ? checkFactoryResponse.getSessionNum().trim().replace("%", "")
+                    : checkFactoryResponse.getExceptionResponse().getDescription().trim().replace("%", "");
+            log.info("after test prepare to send with numSession= [{}]", numSession);
             URL url = new URL(filiale.getEndPoint());
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
@@ -291,15 +321,14 @@ public class ApiService {
             builder.append("<send_request><request>");
             builder.append(
                     "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:urn=\"urn:WebservicePlus\">");
-            builder.append("<soapenv:Body><urn:Recu_paiement><urn:vnum_fact>" + cardsRequest.getRefPaie()
-                    + "</urn:vnum_fact>");
+            builder.append("<soapenv:Body><urn:Recu_paiement><urn:Ref_paie>" + numSession + "</urn:Ref_paie>");
             builder.append("</urn:Recu_paiement></soapenv:Body></soapenv:Envelope>");
             builder.append("</request>");
             builder.append(
-                    "<url_link>" + ICodeDescResponse.ADRESSE_JIRAMA + "</url_link><url_content>xml</url_content>");
+                    "<url_link>" + applicationProperties.getJirama() + "</url_link><url_content>xml</url_content>");
             builder.append("</send_request>");
 
-            log.info(" req xml ====== [{}]", builder.toString());
+            log.info(" req xml for Recu_paiement ====== [{}]", builder.toString());
             tracking.setRequestTr(builder.toString());
             os = conn.getOutputStream();
             byte[] postDataBytes = builder.toString().getBytes();
@@ -317,22 +346,28 @@ public class ApiService {
                 log.info("result ===== [{}]", result);
                 obj = new JSONObject(result).getJSONObject("response").getJSONObject("Envelope").getJSONObject("Body");
                 log.info("obj res ===== [{}]", obj.toString());
-                if (obj.getJSONObject("Recu_paiementResponse").getString("Recu_paiementResult").contains("RP0001")) {
+                if (obj.getJSONObject("Recu_paiementResponse").getString("Recu_paiementResult").contains("RP000")) {
                     JSONObject errObj = obj.getJSONObject("Recu_paiementResponse");
                     ExceptionResponse exceptionResponse = new ExceptionResponse();
                     log.error("msg err = [{}]", errObj.get("Recu_paiementResult"));
                     String[] tabErr = new String[2];
-
-                    tabErr = errObj.get("Recu_paiementResult").toString().split("#");
+                    String errResult = "";
                     ResponseRequest responseRequest = new ResponseRequest();
+                    if (errObj.getString("Recu_paiementResult").contains("#")) {
+                        tabErr = errObj.get("Recu_paiementResult").toString().split("#");
+                        responseRequest.setRetourCode(tabErr[0].trim());
+                    } else {
+                        errResult = errObj.getString("Recu_paiementResult");
+                        responseRequest.setRetourCode(errResult);
+                    }
+
                     responseRequest.setBillerCode(cardsRequest.getBillerCode().toUpperCase());
                     responseRequest.setLangue(cardsRequest.getLangue());
-                    responseRequest.setRetourCode(tabErr[0].trim());
                     responseRequest.setServiceName(ICodeDescResponse.SERVICE_RECU_PAIEMENT);
                     ResponseResponse responseResponse = getResponse(responseRequest);
 
-                    exceptionResponse.setNumber(tabErr[0]);
-                    exceptionResponse.setDescription(tabErr[1]);
+                    exceptionResponse.setNumber(tabErr[0] != null ? tabErr[0] : errResult);
+                    exceptionResponse.setDescription(tabErr[1] != null ? tabErr[1] : "");
                     genericResponse.setCode((responseResponse == null || responseResponse.getCode().equals("0000"))
                             ? ICodeDescResponse.ECHEC_CODE
                             : responseResponse.getCode());
@@ -356,7 +391,7 @@ public class ApiService {
                     // trackingService.save(tracking);
                     os.close();
                     // return genericResponse;
-                } else if (!obj.getJSONObject("Recu_paiementResponse").toString().contains("RP0001")) {
+                } else if (!obj.getJSONObject("Recu_paiementResponse").toString().contains("RP000")) {
                     log.info("succ == [{}]", obj.toString());
                     String succesOb = obj.getJSONObject("Recu_paiementResponse").getString("Recu_paiementResult");
                     log.info("succc === [{}]", succesOb.toString());
@@ -390,7 +425,6 @@ public class ApiService {
                     tracking.setTokenTr(tab[1]);
                     tracking.setDateRequest(Instant.now());
 
-                    
                     os.close();
                 }
             } else {
@@ -412,7 +446,7 @@ public class ApiService {
             }
             log.error("errorrr== [{}]", e.getMessage());
             genericResponse = (RecuPaiementResponse) clientAbsent(genericResponse, tracking, "paymentReceipt",
-                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC,
+                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC + e.getMessage(),
                     request.getRequestURI(), tab[1]);
             // return genericResponse;
 
@@ -422,7 +456,7 @@ public class ApiService {
     }
 
     public CheckCustomerResponse checkCustomer(CheckCustomerRequest checkCustomerRequest, HttpServletRequest request) {
-		ParamFiliale filiale = paramFilialeRepository.findByCodeFiliale("checkFactory");
+        ParamFiliale filiale = paramFilialeRepository.findByCodeFiliale("checkFactory");
         Tracking tracking = new Tracking();
         CheckCustomerResponse genericResponse = new CheckCustomerResponse();
         String autho = request.getHeader("Authorization");
@@ -449,12 +483,13 @@ public class ApiService {
             builder.append("<send_request><request>");
             builder.append(
                     "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:urn=\"urn:WebservicePlus\">");
-            builder.append("<soapenv:Body><urn:Check_client><urn:vref>" + checkCustomerRequest.getBillRef()+"</urn:vref>");
-            builder.append("<urn:vRefenca>" + checkCustomerRequest.getCashingRef()+"</urn:vRefenca>");
+            builder.append(
+                    "<soapenv:Body><urn:Check_client><urn:vref>" + checkCustomerRequest.getBillRef() + "</urn:vref>");
+            builder.append("<urn:vRefenca>" + checkCustomerRequest.getCashingRef() + "</urn:vRefenca>");
             builder.append("</urn:Check_client></soapenv:Body></soapenv:Envelope>");
             builder.append("</request>");
             builder.append(
-                    "<url_link>" + ICodeDescResponse.ADRESSE_JIRAMA + "</url_link><url_content>xml</url_content>");
+                    "<url_link>" + applicationProperties.getJirama() + "</url_link><url_content>xml</url_content>");
             builder.append("</send_request>");
 
             log.info(" req xml ====== [{}]", builder.toString());
@@ -489,8 +524,8 @@ public class ApiService {
                     responseRequest.setServiceName(ICodeDescResponse.SERVICE_CHECK_CLIENT);
                     ResponseResponse responseResponse = getResponse(responseRequest);
 
-                    //exceptionResponse.setNumber(tabErr[0]);
-                    //exceptionResponse.setDescription(tabErr[1]);
+                    // exceptionResponse.setNumber(tabErr[0]);
+                    // exceptionResponse.setDescription(tabErr[1]);
                     genericResponse.setCode((responseResponse == null || responseResponse.getCode().equals("0000"))
                             ? ICodeDescResponse.ECHEC_CODE
                             : responseResponse.getCode());
@@ -500,7 +535,7 @@ public class ApiService {
                                     ? ICodeDescResponse.ECHEC_DESCRIPTION
                                     : responseResponse.getDescription());
 
-                    //genericResponse.setExceptionResponse(exceptionResponse);
+                    // genericResponse.setExceptionResponse(exceptionResponse);
                     // .getJSONObject("Fault").getString("faultstring"));
                     tracking.setCodeResponse((responseResponse == null || responseResponse.getCode().equals("0000"))
                             ? ICodeDescResponse.ECHEC_CODE
@@ -514,7 +549,8 @@ public class ApiService {
                     // trackingService.save(tracking);
                     os.close();
                     // return genericResponse;
-                } else if (!obj.getJSONObject("Check_clientResponse").getString("Check_clientResult").contains("C000")) {
+                } else if (!obj.getJSONObject("Check_clientResponse").getString("Check_clientResult")
+                        .contains("C000")) {
                     log.info("succ == [{}]", obj.toString());
                     String succesOb = obj.getJSONObject("Check_clientResponse").getString("Check_clientResult");
                     log.info("succc === [{}]", succesOb.toString());
@@ -548,7 +584,6 @@ public class ApiService {
                     tracking.setTokenTr(tab[1]);
                     tracking.setDateRequest(Instant.now());
 
-                    
                     os.close();
                 }
             } else {
@@ -570,14 +605,14 @@ public class ApiService {
             }
             log.error("errorrr== [{}]", e.getMessage());
             genericResponse = (CheckCustomerResponse) clientAbsent(genericResponse, tracking, "checkClient",
-                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC,
+                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC + e.getMessage(),
                     request.getRequestURI(), tab[1]);
             // return genericResponse;
 
         }
         trackingService.save(tracking);
         return genericResponse;
-	}
+    }
 
     public GetBillsByRefResponse getBillsByRef(GetBillsByRefJiramaReq cardsRequest, HttpServletRequest request) {
         ParamFiliale filiale = paramFilialeRepository.findByCodeFiliale("checkFactory");
@@ -613,7 +648,7 @@ public class ApiService {
             builder.append("</urn:Check_ref_ptf></soapenv:Body></soapenv:Envelope>");
             builder.append("</request>");
             builder.append(
-                    "<url_link>" + ICodeDescResponse.ADRESSE_JIRAMA + "</url_link><url_content>xml</url_content>");
+                    "<url_link>" + applicationProperties.getJirama() + "</url_link><url_content>xml</url_content>");
             builder.append("</send_request>");
             /*
              * String jsonString = ""; jsonString = new JSONObject().put("vnum_fact",
@@ -634,7 +669,7 @@ public class ApiService {
             JSONObject obj = new JSONObject();
             log.info("resp code [{}]", conn.getResponseCode());
             // log.info("resp code [{}]", conn.);
-            if (conn.getResponseCode() == 200) { 
+            if (conn.getResponseCode() == 200) {
                 br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 result = br.readLine();
                 // System.out.println("err=" + result);
@@ -660,9 +695,10 @@ public class ApiService {
                     ResponseResponse responseResponse = getResponse(responseRequest);
 
                     exceptionResponse.setNumber(tabErr[0]);
-                    exceptionResponse.setDescription((responseResponse == null || responseResponse.getCode().equals("0000"))
-                    ? ICodeDescResponse.ECHEC_DESCRIPTION
-                    : responseResponse.getDescription());
+                    exceptionResponse
+                            .setDescription((responseResponse == null || responseResponse.getCode().equals("0000"))
+                                    ? ICodeDescResponse.ECHEC_DESCRIPTION
+                                    : responseResponse.getDescription());
                     genericResponse.setCode((responseResponse == null || responseResponse.getCode().equals("0000"))
                             ? ICodeDescResponse.ECHEC_CODE
                             : responseResponse.getCode());
@@ -689,13 +725,13 @@ public class ApiService {
                             obj.getJSONObject("Check_ref_ptfResponse").getString("Check_ref_ptfResult"));
 
                     log.info("success === [{}]", succesOb);
-                    //succesOb = succesOb.replaceAll("##", "#");
+                    // succesOb = succesOb.replaceAll("##", "#");
                     String[] tabSuccess = succesOb.split(Pattern.quote("$"));
                     log.info("taill tab = [{}]", tabSuccess.length);
                     for (int i = 0; i < tabSuccess.length; i++) {
                         String[] tabTemp = tabSuccess[i].split("#");
                         ItemResp itemResp = new ItemResp();
-                        itemResp.setBillAmount(Double.valueOf(tabTemp[3]));
+                        itemResp.setBillAmount(Double.valueOf(tabTemp[3]) * 100);
                         itemResp.setBillDate(tabTemp[2]);
                         itemResp.setBillNum(tabTemp[0]);
                         itemResp.setRequierNumber(tabTemp[4]);
@@ -703,12 +739,13 @@ public class ApiService {
                         itemResp.setCustumerRef(tabTemp[1]);
                         itemResp.setSessionNum(tabTemp[5]);
 
-                    GetBillFeesRequest billFeesRequest = new GetBillFeesRequest();
-                    billFeesRequest.setBillerCode(cardsRequest.getBillerCode());
-                    billFeesRequest.setMontant(itemResp.getBillAmount().toString());
-                    billFeesRequest.setTypeCanal(cardsRequest.getChannel());
-                    GetBillFeesResponse billFeesResponse = getBillFees(billFeesRequest, request);
-                    if(billFeesResponse != null ) itemResp.setFeeAmount(billFeesResponse.getMontantFrais());
+                        GetBillFeesRequest billFeesRequest = new GetBillFeesRequest();
+                        billFeesRequest.setBillerCode(cardsRequest.getBillerCode());
+                        billFeesRequest.setMontant(itemResp.getBillAmount().toString());
+                        billFeesRequest.setTypeCanal(cardsRequest.getChannel());
+                        GetBillFeesResponse billFeesResponse = getBillFees(billFeesRequest, request);
+                        if (billFeesResponse != null)
+                            itemResp.setFeeAmount(billFeesResponse.getMontantFrais().doubleValue() * 100);
 
                         genericResponse.getBillList().add(itemResp);
                     }
@@ -719,16 +756,18 @@ public class ApiService {
                     responseRequest.setServiceName(ICodeDescResponse.SERVICE_CHECK_REF_PTF);
                     ResponseResponse responseResponse = getResponse(responseRequest);
 
-                    genericResponse.setCode((responseResponse==null || responseResponse.getCode().equals("0000"))?
-                    ICodeDescResponse.SUCCES_CODE:responseResponse.getCode());
+                    genericResponse.setCode((responseResponse == null || responseResponse.getCode().equals("0000"))
+                            ? ICodeDescResponse.SUCCES_CODE
+                            : responseResponse.getCode());
                     genericResponse.setDateResponse(Instant.now());
-                    genericResponse.setDescription((responseResponse==null || responseResponse.getCode().equals("0000"))?
-                    ICodeDescResponse.SUCCES_DESCRIPTION:responseResponse.getDescription());
+                    genericResponse
+                            .setDescription((responseResponse == null || responseResponse.getCode().equals("0000"))
+                                    ? ICodeDescResponse.SUCCES_DESCRIPTION
+                                    : responseResponse.getDescription());
 
-                    
-                    
-                    tracking.setCodeResponse((responseResponse==null || responseResponse.getCode().equals("0000"))?
-                    ICodeDescResponse.SUCCES_CODE:responseResponse.getCode());
+                    tracking.setCodeResponse((responseResponse == null || responseResponse.getCode().equals("0000"))
+                            ? ICodeDescResponse.SUCCES_CODE
+                            : responseResponse.getCode());
                     tracking.setDateResponse(Instant.now());
                     tracking.setEndPointTr("getBillsByRef");
                     tracking.setLoginActeur(userService.getUserWithAuthorities().get().getLogin());
@@ -756,7 +795,7 @@ public class ApiService {
             }
             log.error("errorrr== [{}]", e.getMessage());
             genericResponse = (GetBillsByRefResponse) clientAbsent(genericResponse, tracking, "getBillsByRef",
-                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC,
+                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC + e.getMessage(),
                     request.getRequestURI(), tab[1]);
 
         }
@@ -775,7 +814,7 @@ public class ApiService {
         cardsRequest.setVnumFact(getBillsByNumRequest.getBillNum());
         cardsRequest.setChannel(getBillsByNumRequest.getChannelType());
         GetBillsByRefResponse billsByRefResponse = new GetBillsByRefResponse();
-        CheckFactoryResponse checkFactoryResponse = checkFactoryJir(cardsRequest, request);
+        CheckFactoryResponse checkFactoryResponse = checkFactory(cardsRequest, request);
         if (checkFactoryResponse != null && checkFactoryResponse.getBillNum() != null) {
             GetBillsByRefJiramaReq billsByRefJiramaReq = new GetBillsByRefJiramaReq();
             billsByRefJiramaReq.setRefenca(cardsRequest.getRefenca());
@@ -817,6 +856,7 @@ public class ApiService {
     }
 
     public GetAccountResponse getBillerAccount(GetAccountRequest accountRequest, HttpServletRequest request) {
+        log.info("enter in getBillerAccount [{}]", accountRequest);
         ParamFiliale filiale = paramFilialeRepository.findByCodeFiliale("getBillerAccount");
         Tracking tracking = new Tracking();
         GetAccountResponse genericResponse = new GetAccountResponse();
@@ -866,11 +906,10 @@ public class ApiService {
                     JSONObject errObj = new JSONObject(result).getJSONObject("get_billeraccount_response")
                             .getJSONObject("response");
                     log.error("msg err = [{}]", errObj.toString());
-                    
+
                     genericResponse.setCode(ICodeDescResponse.ECHEC_CODE);
                     genericResponse.setDateResponse(Instant.now());
-                    genericResponse
-                            .setDescription(ICodeDescResponse.ECHEC_DESCRIPTION);
+                    genericResponse.setDescription(ICodeDescResponse.ECHEC_DESCRIPTION);
 
                     tracking.setCodeResponse(ICodeDescResponse.ECHEC_CODE);
                     tracking.setDateResponse(Instant.now());
@@ -887,8 +926,7 @@ public class ApiService {
 
                     genericResponse.setCode(ICodeDescResponse.SUCCES_CODE);
                     genericResponse.setDateResponse(Instant.now());
-                    genericResponse
-                            .setDescription(ICodeDescResponse.SUCCES_DESCRIPTION);
+                    genericResponse.setDescription(ICodeDescResponse.SUCCES_DESCRIPTION);
                     genericResponse.setNumAccount(obj.getString("CMSG"));
                     tracking.setCodeResponse(ICodeDescResponse.SUCCES_CODE);
                     tracking.setDateResponse(Instant.now());
@@ -915,7 +953,7 @@ public class ApiService {
             }
             log.error("errorrr== [{}]", e.getMessage());
             genericResponse = (GetAccountResponse) clientAbsent(genericResponse, tracking, "getBillerAccount",
-                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC,
+                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC + e.getMessage(),
                     request.getRequestURI(), tab[1]);
 
         }
@@ -945,7 +983,7 @@ public class ApiService {
             conn.setDoOutput(true);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
-            //conn.setRequestProperty("Accept", "application/json");
+            // conn.setRequestProperty("Accept", "application/json");
 
             String jsonString = "";
             jsonString = new JSONObject().put("country", billersRequest.getCountry()).toString();
@@ -964,16 +1002,16 @@ public class ApiService {
             log.info("resp code [{}]", conn.getResponseCode());
             if (conn.getResponseCode() == 200) {
                 br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                result = br.readLine(); 
+                result = br.readLine();
                 log.info("result ===== [{}]", result);
-                obj = new JSONObject(result);//("billersList");
-                
-                if (obj == null || obj.getJSONObject("billersList")==null || obj.getJSONObject("billersList").get("billersList")==null) {
+                obj = new JSONObject(result);// ("billersList");
+
+                if (obj == null || obj.getJSONObject("billersList") == null
+                        || obj.getJSONObject("billersList").get("billersList") == null) {
                     log.info("obj res ===== [{}]", obj.toString());
                     genericResponse.setCode(ICodeDescResponse.ECHEC_CODE);
                     genericResponse.setDateResponse(Instant.now());
-                    genericResponse
-                            .setDescription(ICodeDescResponse.ECHEC_DESCRIPTION);
+                    genericResponse.setDescription(ICodeDescResponse.ECHEC_DESCRIPTION);
 
                     tracking.setCodeResponse(ICodeDescResponse.ECHEC_CODE);
                     tracking.setDateResponse(Instant.now());
@@ -983,23 +1021,24 @@ public class ApiService {
                     tracking.setTokenTr(tab[1]);
                     tracking.setDateRequest(Instant.now());
                     os.close();
-                } else if (obj != null && obj.getJSONObject("billersList")!=null && obj.getJSONObject("billersList").get("billersList")!=null) {
-                    obj = new JSONObject(result).getJSONObject("billersList");//("billersList");
-                    //log.info("succ == [{}]", obj.toString());
+                }
+                if (obj != null && obj.getJSONObject("billersList") != null
+                        && obj.getJSONObject("billersList").get("billersList") != null) {
+                    obj = new JSONObject(result).getJSONObject("billersList");// ("billersList");
+                    // log.info("succ == [{}]", obj.toString());
 
                     log.info("success ===  [{}]", obj.toString());
 
                     genericResponse.setCode(ICodeDescResponse.SUCCES_CODE);
                     genericResponse.setDateResponse(Instant.now());
-                    genericResponse
-                            .setDescription(ICodeDescResponse.SUCCES_DESCRIPTION);
-                    if(obj.get("billersList") instanceof JSONArray){ 
+                    genericResponse.setDescription(ICodeDescResponse.SUCCES_DESCRIPTION);
+                    if (obj.get("billersList") instanceof JSONArray) {
                         log.info("array ===[{}]", obj.getJSONArray("billersList"));
-                        for(int i=0; i<obj.getJSONArray("billersList").length();i++){
+                        for (int i = 0; i < obj.getJSONArray("billersList").length(); i++) {
                             Biller biller = new Biller();
                             JSONObject myObj = obj.getJSONArray("billersList").getJSONObject(i).getJSONObject("biller");
                             biller.setAddress(myObj.getString("ADDRESS"));
-                            biller.setBillerCategory("BILLER_CATEGORY");
+                            biller.setBillerCategory(myObj.getString("BILLER_CATEGORY"));
                             biller.setBillerCode(myObj.getString("BILLER_CODE"));
                             biller.setBillerId(myObj.getLong("BILLER_ID"));
                             biller.setChannel(myObj.getString("CHANNEL"));
@@ -1012,22 +1051,22 @@ public class ApiService {
                             biller.setWebsite(myObj.getString("WEBSITE"));
                             genericResponse.getBillers().add(biller);
                         }
-                    }else {
+                    } else {
                         Biller biller = new Biller();
-                            JSONObject myObj = obj.getJSONObject("billersList").getJSONObject("biller");
-                            biller.setAddress(myObj.getString("ADDRESS"));
-                            biller.setBillerCategory("BILLER_CATEGORY");
-                            biller.setBillerCode(myObj.getString("BILLER_CODE"));
-                            biller.setBillerId(myObj.getLong("BILLER_ID"));
-                            biller.setChannel(myObj.getString("CHANNEL"));
-                            biller.setEmail(myObj.getString("EMAIL"));
-                            biller.setLogo(myObj.getString("LOGO"));
-                            biller.setName(myObj.getString("NAME"));
-                            biller.setPays(myObj.getString("PAYS"));
-                            biller.setStatus(myObj.getString("STATUS"));
-                            biller.setTelephone(myObj.getString("TELEPHONE"));
-                            biller.setWebsite(myObj.getString("WEBSITE"));
-                            genericResponse.getBillers().add(biller);
+                        JSONObject myObj = obj.getJSONObject("billersList").getJSONObject("biller");
+                        biller.setAddress(myObj.getString("ADDRESS"));
+                        biller.setBillerCategory(myObj.getString("BILLER_CATEGORY"));
+                        biller.setBillerCode(myObj.getString("BILLER_CODE"));
+                        biller.setBillerId(myObj.getLong("BILLER_ID"));
+                        biller.setChannel(myObj.getString("CHANNEL"));
+                        biller.setEmail(myObj.getString("EMAIL"));
+                        biller.setLogo(myObj.getString("LOGO"));
+                        biller.setName(myObj.getString("NAME"));
+                        biller.setPays(myObj.getString("PAYS"));
+                        biller.setStatus(myObj.getString("STATUS"));
+                        biller.setTelephone(myObj.getString("TELEPHONE"));
+                        biller.setWebsite(myObj.getString("WEBSITE"));
+                        genericResponse.getBillers().add(biller);
                     }
                     tracking.setCodeResponse(ICodeDescResponse.SUCCES_CODE);
                     tracking.setDateResponse(Instant.now());
@@ -1055,16 +1094,17 @@ public class ApiService {
             }
             log.error("errorrr== [{}]", e.getMessage());
             genericResponse = (GetBillersResponse) clientAbsent(genericResponse, tracking, "getBiller",
-                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC,
+                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC + e.getMessage(),
                     request.getRequestURI(), tab[1]);
 
         }
         trackingService.save(tracking);
         return genericResponse;
     }
-    
+
     public GetBillFeesResponse getBillFees(GetBillFeesRequest billFeesRequest, HttpServletRequest request) {
-		ParamFiliale filiale = paramFilialeRepository.findByCodeFiliale("getBillFees");
+        log.info("===enter in getBillFees [{}]", billFeesRequest);
+        ParamFiliale filiale = paramFilialeRepository.findByCodeFiliale("getBillFees");
         Tracking tracking = new Tracking();
         GetBillFeesResponse genericResponse = new GetBillFeesResponse();
         String autho = request.getHeader("Authorization");
@@ -1085,13 +1125,12 @@ public class ApiService {
             conn.setDoOutput(true);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
-            //conn.setRequestProperty("Accept", "application/json");
+            // conn.setRequestProperty("Accept", "application/json");
 
             String jsonString = "";
             jsonString = new JSONObject().put("p_CodeBiller", billFeesRequest.getBillerCode())
-                .put("p_TypeCanal", billFeesRequest.getTypeCanal())
-                .put("P_Montant", billFeesRequest.getMontant())
-                .toString();
+                    .put("p_TypeCanal", billFeesRequest.getTypeCanal()).put("P_Montant", billFeesRequest.getMontant())
+                    .toString();
 
             log.info(" req json ====== [{}]", jsonString);
             tracking.setRequestTr(jsonString);
@@ -1112,13 +1151,12 @@ public class ApiService {
                 obj = new JSONObject(result).getJSONObject("getBillFees").getJSONObject("getBillFees");
                 log.info("obj res ===== [{}]", obj.toString());
                 if (obj.toString().contains("-1")) {
-                    //JSONObject errObj = obj.
-                    //log.error("msg err = [{}]", errObj.toString());
-                    
+                    // JSONObject errObj = obj.
+                    // log.error("msg err = [{}]", errObj.toString());
+
                     genericResponse.setCode(ICodeDescResponse.ECHEC_CODE);
                     genericResponse.setDateResponse(Instant.now());
-                    genericResponse
-                            .setDescription(ICodeDescResponse.ECHEC_DESCRIPTION);
+                    genericResponse.setDescription(ICodeDescResponse.ECHEC_DESCRIPTION);
 
                     tracking.setCodeResponse(ICodeDescResponse.ECHEC_CODE);
                     tracking.setDateResponse(Instant.now());
@@ -1135,8 +1173,7 @@ public class ApiService {
 
                     genericResponse.setCode(ICodeDescResponse.SUCCES_CODE);
                     genericResponse.setDateResponse(Instant.now());
-                    genericResponse
-                            .setDescription(ICodeDescResponse.SUCCES_DESCRIPTION);
+                    genericResponse.setDescription(ICodeDescResponse.SUCCES_DESCRIPTION);
                     genericResponse.setMontantFrais(obj.getDouble("P_MontantFrais"));
                     tracking.setCodeResponse(ICodeDescResponse.SUCCES_CODE);
                     tracking.setDateResponse(Instant.now());
@@ -1159,19 +1196,20 @@ public class ApiService {
             try {
                 os.close();
             } catch (IOException e1) {
-                log.error("errorrr== [{}]", e1.getMessage());
+                log.error("errorrr==> [{}]", e1.getMessage());
             }
             log.error("errorrr== [{}]", e.getMessage());
             genericResponse = (GetBillFeesResponse) clientAbsent(genericResponse, tracking, "getBillFees",
-                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC,
+                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC + e.getMessage(),
                     request.getRequestURI(), tab[1]);
 
         }
         trackingService.save(tracking);
         return genericResponse;
     }
-    
+
     public PayementResponse payBill(PayementRequest payementRequest, HttpServletRequest request) {
+        log.info("====Enter in payBill [{}]", payementRequest);
         ParamFiliale filiale = paramFilialeRepository.findByCodeFiliale("payBill");
         Tracking tracking = new Tracking();
         PayementResponse genericResponse = new PayementResponse();
@@ -1193,87 +1231,91 @@ public class ApiService {
             checkFactoryRequest.setRefenca(payementRequest.getCashingRef());
             checkFactoryRequest.setTelcli(payementRequest.getPhoneNumber());
             checkFactoryRequest.setVnumFact(payementRequest.getBillNum());
-            CheckFactoryResponse checkFactoryResponse = checkFactoryJir(checkFactoryRequest, request);
-            if(checkFactoryResponse==null || checkFactoryResponse.getBillAmount()==null){
+            checkFactoryRequest.setChannel(payementRequest.getChannelType());
+            CheckFactoryResponse checkFactoryResponse = checkFactory(checkFactoryRequest, request);
+            if (checkFactoryResponse == null || checkFactoryResponse.getBillAmount() == null) {
                 genericResponse = (PayementResponse) clientAbsent(genericResponse, tracking, "getBill in paiement",
-                        ICodeDescResponse.ECHEC_CODE, ICodeDescResponse.FACTURE_NON_TROUVE, request.getRequestURI(),
+                        checkFactoryResponse.getCode(), checkFactoryResponse.getDescription(), request.getRequestURI(),
                         tab[1]);
-                        return genericResponse;
+                return genericResponse;
             }
 
             GetAccountRequest accountRequest = new GetAccountRequest();
             accountRequest.setAccountType(ICodeDescResponse.ACCOUNT_PRINCIPAL);
             accountRequest.setBillerCode(payementRequest.getBillerCode());
             GetAccountResponse accountResponse = getBillerAccount(accountRequest, request);
-            if(accountResponse == null || accountResponse.getNumAccount()==null){
-                genericResponse = (PayementResponse) clientAbsent(genericResponse, tracking, "getBillAccount in paiement",
-                        ICodeDescResponse.ECHEC_CODE, ICodeDescResponse.ACCOUNT_PRINCIPAL_NON_TROUVE, request.getRequestURI(),
-                        tab[1]);
-                        return genericResponse;
+            if (accountResponse == null || accountResponse.getNumAccount() == null) {
+                genericResponse = (PayementResponse) clientAbsent(genericResponse, tracking,
+                        "getBillAccount in paiement", ICodeDescResponse.ECHEC_CODE,
+                        ICodeDescResponse.ACCOUNT_PRINCIPAL_NON_TROUVE, request.getRequestURI(), tab[1]);
+                return genericResponse;
             }
             BillerByCodeRequest billerByCodeRequest = new BillerByCodeRequest();
             billerByCodeRequest.setBillerCode(payementRequest.getBillerCode());
             BillerByCodeResponse billerByCodeResponse = getBillerByCode(billerByCodeRequest, request);
-            if(billerByCodeResponse == null || billerByCodeResponse.getBILLERCODE()==null){
-                genericResponse = (PayementResponse) clientAbsent(genericResponse, tracking, "getBillerByCode in paiement",
-                        ICodeDescResponse.ECHEC_CODE, ICodeDescResponse.BILLER_NON_TROUVE, request.getRequestURI(),
-                        tab[1]);
-                        return genericResponse;
+            log.info("afetr calling request [{}] response[{}] ", billerByCodeRequest, billerByCodeResponse);
+            if (billerByCodeResponse == null || billerByCodeResponse.getBILLERCODE() == null) {
+                genericResponse = (PayementResponse) clientAbsent(genericResponse, tracking,
+                        "getBillerByCode in paiement", ICodeDescResponse.ECHEC_CODE,
+                        ICodeDescResponse.BILLER_NON_TROUVE, request.getRequestURI(), tab[1]);
+                return genericResponse;
             }
-
+            log.info("before calling getBillFees ");
             GetBillFeesRequest billFeesRequest = new GetBillFeesRequest();
             billFeesRequest.setBillerCode(payementRequest.getBillerCode());
             billFeesRequest.setMontant(checkFactoryResponse.getBillAmount().toString());
             billFeesRequest.setTypeCanal(payementRequest.getChannelType());
+            log.info("====before calling getBillFees in payBill [{}]", billFeesRequest);
             GetBillFeesResponse billFeesResponse = getBillFees(billFeesRequest, request);
-            if(billFeesResponse == null || billFeesResponse.getMontantFrais()==null){
+            if (billFeesResponse == null || billFeesResponse.getMontantFrais() == null) {
                 genericResponse = (PayementResponse) clientAbsent(genericResponse, tracking, "getBillFees in paiement",
                         ICodeDescResponse.ECHEC_CODE, ICodeDescResponse.FEES_NON_TROUVE, request.getRequestURI(),
                         tab[1]);
-                        return genericResponse;
+                return genericResponse;
             }
 
-            
-            
             URL url = new URL(filiale.getEndPoint());
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/xml");
-            //conn.setRequestProperty("Accept", "application/xml");
+            // conn.setRequestProperty("Accept", "application/xml");
 
             StringBuilder builder = new StringBuilder();
             builder.append("<send_request><request>");
             builder.append(
                     "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:urn=\"urn:WebservicePlus\">");
-            builder.append("<soapenv:Body><urn:Paie_Mobile><urn:vNUM_SESSION>" +checkFactoryResponse.getSessionNum() + "</urn:vNUM_SESSION>");
+            builder.append("<soapenv:Body><urn:Paie_Mobile><urn:vNUM_SESSION>" + checkFactoryResponse.getSessionNum()
+                    + "</urn:vNUM_SESSION>");
             builder.append("<urn:vnum_fact>" + payementRequest.getBillNum() + "</urn:vnum_fact>");
-            builder.append("<urn:vref_client>" + checkFactoryResponse.getCustumerRef()+ "</urn:vref_client>");
+            builder.append("<urn:vref_client>" + checkFactoryResponse.getCustumerRef() + "</urn:vref_client>");
 
             builder.append("<urn:vdate_paie>" + payementRequest.getPaymentDate() + "</urn:vdate_paie>");
             builder.append("<urn:vtel_client>" + payementRequest.getPhoneNumber() + "</urn:vtel_client>");
-            builder.append("<urn:vmontant>" + checkFactoryResponse.getBillAmount() + "</urn:vmontant>");
+            Double amount = checkFactoryResponse.getBillAmount() / 100;
+            builder.append("<urn:vmontant>" + amount + "</urn:vmontant>");
             builder.append("<urn:vtel_jirama>" + billerByCodeResponse.getTELEPHONE() + "</urn:vtel_jirama>");
             builder.append("</urn:Paie_Mobile></soapenv:Body></soapenv:Envelope>");
             builder.append("</request>");
             builder.append(
-                    "<url_link>" + ICodeDescResponse.ADRESSE_JIRAMA + "</url_link><url_content>xml</url_content>");
+                    "<url_link>" + applicationProperties.getJirama() + "</url_link><url_content>xml</url_content>");
             builder.append("<compteDebit>" + payementRequest.getCustomerAccount() + "</compteDebit>");
             builder.append("<compteCredit>" + accountResponse.getNumAccount() + "</compteCredit>");
-            builder.append("<montantFact>" +checkFactoryResponse.getBillAmount() + "</montantFact>");
-            builder.append("<montantFrais>" + billFeesResponse.getMontantFrais() + "</montantFrais>");
+            builder.append("<montantFact>" + amount + "</montantFact>");
+            Double fees = billFeesResponse.getMontantFrais();
+            builder.append("<montantFrais>" + fees + "</montantFrais>");
             builder.append("<libelle>" + payementRequest.getDescription() + "</libelle>");
-            builder.append("<deviseFact>" +billerByCodeResponse.getDEVISE() + "</deviseFact>");
-            builder.append("<dispo>" +"DISPONIBLE" + "</dispo>"); //FIXME
+            builder.append("<deviseFact>" + billerByCodeResponse.getDEVISE() + "</deviseFact>");
+            builder.append("<dispo>" + "DISPONIBLE" + "</dispo>"); // FIXME
             builder.append("<val>" + "V" + "</val>");
             builder.append("<libAuto>" + "PAYEMENT FACTURE" + "</libAuto>");
             builder.append("<country>" + billerByCodeResponse.getPAYS() + "</country>");
-            //builder.append("<country>" + "BF" + "</country>");
+            // builder.append("<country>" + "BF" + "</country>");
             builder.append("<codopsc>" + "GAB" + "</codopsc>");
-            builder.append("<numRefTx>" + payementRequest.getBillRefTrx()+ "</numRefTx>");
-            
+            builder.append("<numRefTx>" + payementRequest.getBillRefTrx() + "</numRefTx>");
+
             builder.append("</send_request>");
-            
+
             log.info(" req xml ====== [{}]", builder.toString());
             tracking.setRequestTr(builder.toString());
             os = conn.getOutputStream();
@@ -1297,9 +1339,9 @@ public class ApiService {
                     ExceptionResponse exceptionResponse = new ExceptionResponse();
                     log.error("msg err = [{}]", errObj.toString());
                     String[] tabErr = new String[2];
-                    //errObj = errObj.getJSONObject("PMSG")
-                    tabErr = errObj.getJSONObject("PMSG").getJSONObject("Envelope")
-                    .getJSONObject("Body").getJSONObject("Paie_MobileResponse").getString("Paie_MobileResult").split("#");
+                    // errObj = errObj.getJSONObject("PMSG")
+                    tabErr = errObj.getJSONObject("PMSG").getJSONObject("Envelope").getJSONObject("Body")
+                            .getJSONObject("Paie_MobileResponse").getString("Paie_MobileResult").split("#");
 
                     ResponseRequest responseRequest = new ResponseRequest();
                     responseRequest.setBillerCode(payementRequest.getBillerCode());
@@ -1320,21 +1362,19 @@ public class ApiService {
                                     ? ICodeDescResponse.ECHEC_DESCRIPTION
                                     : responseResponse.getDescription());
 
-                    /*AnnulationPaiement annulationPaiement = new AnnulationPaiement();
+                    AnnulationPaiement annulationPaiement = new AnnulationPaiement();
                     log.info("err= [{}]", errObj.toString());
                     log.info("err= [{}]", obj.toString());
                     annulationPaiement.setCode(obj.getJSONObject("annulation").getString("PCOD"));
                     annulationPaiement.setResultat(obj.getJSONObject("annulation").getString("PMSG"));
-                    genericResponse.setAnnulationPaiement(annulationPaiement);*/
-                    genericResponse.setAnnulationCode(obj.getJSONObject("annulation").getString("PCOD"));
-                    genericResponse.setAnnulationMsg(obj.getJSONObject("annulation").getString("PMSG"));
-                    //PaieMobile paieMobile = new PaieMobile();
-                    //genericResponse.setPaieMobile(paieMobile);
-                    //genericResponse.setExceptionResponse(exceptionResponse);
-                    TransactionGlobal trG = createTransaction(payementRequest, genericResponse.getCode(), 
-                    checkFactoryResponse.getCustomerName(), accountResponse.getNumAccount(), 
-                    billFeesResponse.getMontantFrais(), checkFactoryResponse.getBillNum(), 
-                    checkFactoryResponse.getCustumerRef(), checkFactoryResponse.getBillAmount(), responseResponse.getDescription());
+                    genericResponse.setAnnulationPaiement(annulationPaiement);
+                    // PaieMobile paieMobile = new PaieMobile();
+                    // genericResponse.setPaieMobile(paieMobile);
+                    // genericResponse.setExceptionResponse(exceptionResponse); 
+                    TransactionGlobal trG = createTransaction(payementRequest, genericResponse.getCode(),
+                            checkFactoryResponse.getCustomerName(), accountResponse.getNumAccount(),
+                            billFeesResponse.getMontantFrais(), checkFactoryResponse.getBillNum(),
+                            checkFactoryResponse.getCustumerRef(), checkFactoryResponse.getBillAmount(), "");
                     log.info("transaction saved [{}]", trG);
 
                     tracking.setCodeResponse(ICodeDescResponse.ECHEC_CODE + "");
@@ -1347,11 +1387,11 @@ public class ApiService {
                     os.close();
                 } else if (!obj.toString().contains("P000")) {
                     log.info("succ == [{}]", obj.toString());
-                    //String succesOb = removeLastChar(
-                      //      obj.getJSONObject("Paie_MobileResponse").getString("Paie_MobileResult"));
+                    // String succesOb = removeLastChar(
+                    // obj.getJSONObject("Paie_MobileResponse").getString("Paie_MobileResult"));
 
-                    //log.info("success === [{}]", succesOb);
-                    
+                    // log.info("success === [{}]", succesOb);
+
                     ResponseRequest responseRequest = new ResponseRequest();
                     responseRequest.setBillerCode(payementRequest.getBillerCode());
                     responseRequest.setLangue(payementRequest.getLangue());
@@ -1359,21 +1399,24 @@ public class ApiService {
                     responseRequest.setServiceName(ICodeDescResponse.SERVICE_PAIE_MOBILE);
                     ResponseResponse responseResponse = getResponse(responseRequest);
 
-                    genericResponse.setCode((responseResponse==null || responseResponse.getCode().equals("0000"))?
-                    responseRequest.getRetourCode():responseResponse.getCode());
+                    genericResponse.setCode((responseResponse == null || responseResponse.getCode().equals("0000"))
+                            ? responseRequest.getRetourCode()
+                            : responseResponse.getCode());
                     genericResponse.setDateResponse(Instant.now());
-                    genericResponse.setDescription((responseResponse==null || responseResponse.getCode().equals("0000"))?
-                    obj.getString("PMSG"):responseResponse.getDescription());
-                    
+                    genericResponse
+                            .setDescription((responseResponse == null || responseResponse.getCode().equals("0000"))
+                                    ? obj.getString("PMSG")
+                                    : responseResponse.getDescription());
 
                     TransactionGlobal trG = createTransaction(payementRequest, genericResponse.getCode(),
-                     checkFactoryResponse.getCustomerName(), accountResponse.getNumAccount(), 
-                    billFeesResponse.getMontantFrais(), checkFactoryResponse.getBillNum(), 
-                    checkFactoryResponse.getCustumerRef(), checkFactoryResponse.getBillAmount(), responseResponse.getDescription());
+                            checkFactoryResponse.getCustomerName(), accountResponse.getNumAccount(),
+                            billFeesResponse.getMontantFrais(), checkFactoryResponse.getBillNum(),
+                            checkFactoryResponse.getCustumerRef(), checkFactoryResponse.getBillAmount(), "");
                     log.info("transaction saved [{}]", trG);
 
-                    tracking.setCodeResponse((responseResponse==null || responseResponse.getCode().equals("0000"))?
-                    ICodeDescResponse.SUCCES_CODE:responseResponse.getCode());
+                    tracking.setCodeResponse((responseResponse == null || responseResponse.getCode().equals("0000"))
+                            ? ICodeDescResponse.SUCCES_CODE
+                            : responseResponse.getCode());
                     tracking.setDateResponse(Instant.now());
                     tracking.setEndPointTr("payBill");
                     tracking.setLoginActeur(userService.getUserWithAuthorities().get().getLogin());
@@ -1398,7 +1441,7 @@ public class ApiService {
             }
             log.error("errorrr== [{}]", e.getMessage());
             genericResponse = (PayementResponse) clientAbsent(genericResponse, tracking, "payBill",
-                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC,
+                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC + e.getMessage(),
                     request.getRequestURI(), tab[1]);
 
         }
@@ -1406,15 +1449,15 @@ public class ApiService {
         return genericResponse;
     }
 
-    public TransactionGlobal createTransaction(PayementRequest payementRequest, String codeRetour,
-    String nom, String creditAccount, Double frais, String numFacture, String client, Double montant,
-    String msgFr){
+    public TransactionGlobal createTransaction(PayementRequest payementRequest, String codeRetour, String nom,
+            String creditAccount, Double frais, String numFacture, String client, Double montant, String msgFr) {
         Long idBill = billerTService.findByBillerCode(payementRequest.getBillerCode());
-        if(idBill==null) return null;
+        if (idBill == null)
+            return null;
         BillerT billerT = new BillerT();
         billerT.setId(idBill);
-        //if(billerT==null || billerT.getId()==null)return null;
-        //nom = nom!=null?nom:"";
+        // if(billerT==null || billerT.getId()==null)return null;
+        // nom = nom!=null?nom:"";
         TransactionGlobal transactionGlobal = new TransactionGlobal();
         transactionGlobal.setBillerT(billerT);
         transactionGlobal.setChannel(payementRequest.getChannelType());
@@ -1427,7 +1470,7 @@ public class ApiService {
         transactionGlobal.setDeviceId(payementRequest.getDeviceId());
         transactionGlobal.setEcheance("");
         transactionGlobal.setFrais(frais);
-        transactionGlobal.setMontant(montant);
+        transactionGlobal.setMontant(Double.valueOf(montant));
         transactionGlobal.setNom(nom);
         transactionGlobal.setNumeroFacture(numFacture);
         transactionGlobal.setPrenom(nom);
@@ -1435,7 +1478,6 @@ public class ApiService {
         transactionGlobal.setTelephone(payementRequest.getPhoneNumber());
         transactionGlobal.setBeneficiaire(payementRequest.getBillerCode());
         transactionGlobal.setReferenceTransaction(payementRequest.getBillRefTrx());
-        //transactionGlobal.setMessageEn(msgEn);
         transactionGlobal.setMessageFr(msgFr);
         TransactionGlobal trG = transactionGlobalService.save(transactionGlobal);
         return trG;
@@ -1475,9 +1517,10 @@ public class ApiService {
         TransactionGlobal trG = transactionGlobalService.save(transactionGlobal);
         return trG;
     }
-    
+
     public BillerByCodeResponse getBillerByCode(BillerByCodeRequest byCodeRequest, HttpServletRequest request) {
-		ParamFiliale filiale = paramFilialeRepository.findByCodeFiliale("getBillerByCode");
+        log.info("enter in getBillerByCode [{}]", byCodeRequest);
+        ParamFiliale filiale = paramFilialeRepository.findByCodeFiliale("getBillerByCode");
         Tracking tracking = new Tracking();
         BillerByCodeResponse genericResponse = new BillerByCodeResponse();
         String autho = request.getHeader("Authorization");
@@ -1498,11 +1541,10 @@ public class ApiService {
             conn.setDoOutput(true);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
-            //conn.setRequestProperty("Accept", "application/json");
+            // conn.setRequestProperty("Accept", "application/json");
 
             String jsonString = "";
-            jsonString = new JSONObject().put("billerCode", byCodeRequest.getBillerCode())
-                .toString();
+            jsonString = new JSONObject().put("billerCode", byCodeRequest.getBillerCode()).toString();
 
             log.info(" req json ====== [{}]", jsonString);
             tracking.setRequestTr(jsonString);
@@ -1520,17 +1562,16 @@ public class ApiService {
                 br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 result = br.readLine();
                 log.info("result ===== [{}]", result);
-                obj = new JSONObject(result);//.getJSONObject("biller"); 
-                if (obj.isNull("biller") ) {//||obj.toString().contains("null")
-                    //JSONObject errObj = obj.
-                log.info("obj res ===== [{}]", obj.toString());
+                obj = new JSONObject(result);// .getJSONObject("biller");
+                if (obj.isNull("biller")) {// ||obj.toString().contains("null")
+                    // JSONObject errObj = obj.
+                    log.info("obj res ===== [{}]", obj.toString());
 
-                    //log.error("msg err = [{}]", errObj.toString());
-                    
+                    // log.error("msg err = [{}]", errObj.toString());
+
                     genericResponse.setCode(ICodeDescResponse.ECHEC_CODE);
                     genericResponse.setDateResponse(Instant.now());
-                    genericResponse
-                            .setDescription(ICodeDescResponse.ECHEC_DESCRIPTION);
+                    genericResponse.setDescription(ICodeDescResponse.ECHEC_DESCRIPTION);
 
                     tracking.setCodeResponse(ICodeDescResponse.ECHEC_CODE);
                     tracking.setDateResponse(Instant.now());
@@ -1541,15 +1582,14 @@ public class ApiService {
                     tracking.setDateRequest(Instant.now());
                     os.close();
                 } else if (obj != null && obj.getJSONObject("biller").toString() != null && obj.getJSONObject("biller").get("biller") != null) {
-                    obj = new JSONObject(result).getJSONObject("biller"); 
+                    obj = new JSONObject(result).getJSONObject("biller");
                     log.info("succ == [{}]", obj.toString());
 
                     log.info("success ===  [{}]", obj.toString());
 
                     genericResponse.setCode(ICodeDescResponse.SUCCES_CODE);
                     genericResponse.setDateResponse(Instant.now());
-                    genericResponse
-                            .setDescription(ICodeDescResponse.SUCCES_DESCRIPTION);
+                    genericResponse.setDescription(ICodeDescResponse.SUCCES_DESCRIPTION);
                     obj = obj.getJSONObject("biller");
                     genericResponse.setADDRESS(obj.getString("ADDRESS"));
                     genericResponse.setBILLERCATEGORY(obj.getString("BILLER_CATEGORY"));
@@ -1589,7 +1629,7 @@ public class ApiService {
             }
             log.error("errorrr== [{}]", e.getMessage());
             genericResponse = (BillerByCodeResponse) clientAbsent(genericResponse, tracking, "getBillerByCode",
-                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC,
+                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC + e.getMessage(),
                     request.getRequestURI(), tab[1]);
 
         }
@@ -1707,7 +1747,7 @@ public class ApiService {
             log.error("errorrr 0== [{}]", e.getMessage());
             e.printStackTrace();
             genericResponse = (FactureDispoResponse) clientAbsent(genericResponse, tracking, request.getRequestURI(),
-                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC,
+                    ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC + e.getMessage(),
                     request.getRequestURI(), tab[1]);
             // return genericResponse;
 
@@ -1820,11 +1860,69 @@ public class ApiService {
         return genericResponse;
     }
 
-	
+    public GetBillersResponse getBillersByCateg(GetBillersByCategRequest billersRequest, HttpServletRequest request) {
+        log.info("in getBillersByCateg [{}]", billersRequest);
+        GetBillersResponse genResponse = new GetBillersResponse();
+        try {
+            GetBillersRequest billRequest = new GetBillersRequest();
+            billRequest.setCountry(billersRequest.getCountry());
+            GetBillersResponse billersResp = getBillers(billRequest, request);
+            if (billersResp.getCode() == "200" && !billersResp.getBillers().isEmpty()) {
+                for (Biller biller : billersResp.getBillers()) {
+                    if (biller.getBillerCategory().equals(billersRequest.getCategorie())) {
+                        genResponse.getBillers().add(biller);
+                    }
+                }
+                genResponse.setCode(ICodeDescResponse.SUCCES_CODE);
+                genResponse.setDateResponse(Instant.now());
+                genResponse.setDescription(ICodeDescResponse.SUCCES_DESCRIPTION);
+            }
+            else {
+                genResponse.setCode(ICodeDescResponse.ECHEC_CODE);
+                genResponse.setDateResponse(Instant.now());
+                genResponse.setDescription(ICodeDescResponse.NO_BILLER_FOR_THIS_CATEG);
+            }
 
-	
+        } catch (Exception e) {
+            log.error("Error in getBillersByCateg = ", e);
+            genResponse.setCode(ICodeDescResponse.ECHEC_CODE);
+            genResponse.setDateResponse(Instant.now());
+            genResponse.setDescription(ICodeDescResponse.ECHEC_CODE + " =" + e.getMessage());
+        }
+        return genResponse;
+    }
 
-	
+    public CategBillersResponse getCategByCountry(GetBillersRequest billersRequest, HttpServletRequest request) {
+        log.info("in getCategByCountry [{}]", billersRequest);
+        CategBillersResponse genResponse = new CategBillersResponse();
+        try {
+            GetBillersRequest billRequest = new GetBillersRequest();
+            billRequest.setCountry(billersRequest.getCountry());
+            GetBillersResponse billersResp = getBillers(billRequest, request);
+            if (billersResp.getCode() == "200" && !billersResp.getBillers().isEmpty()) {
+                for (Biller biller : billersResp.getBillers()) {
+                    if (biller.getPays().equals(billersRequest.getCountry())) {
+                        genResponse.getCategories().add(biller.getBillerCategory());
+                    }
+                }
+                genResponse.setCode(ICodeDescResponse.SUCCES_CODE);
+                genResponse.setDateResponse(Instant.now());
+                genResponse.setDescription(ICodeDescResponse.SUCCES_DESCRIPTION);
+            }
+            else {
+                genResponse.setCode(ICodeDescResponse.ECHEC_CODE);
+                genResponse.setDateResponse(Instant.now());
+                genResponse.setDescription(ICodeDescResponse.NO_BILLER_FOR_THIS_CATEG);
+            }
+
+        } catch (Exception e) {
+            log.error("Error in getCategByCountry = ", e);
+            genResponse.setCode(ICodeDescResponse.ECHEC_CODE);
+            genResponse.setDateResponse(Instant.now());
+            genResponse.setDescription(ICodeDescResponse.ECHEC_CODE + " =" + e.getMessage());
+        }
+        return genResponse;
+    }
 
     /*
      * public static void main(String[] args) { String str =
