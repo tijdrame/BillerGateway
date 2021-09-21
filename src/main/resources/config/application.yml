@@ -154,6 +154,6 @@ jhipster:
 
 application:
   timeOut: 20000
-  jirama: http://10.132.4.66:8088/mockJirama #http://192.168.222.95/WEBSERVICE_ORACLE_WEB/awws/WebservicePlus.awws
+  jirama: http://192.168.222.95/WEBSERVICE_ORACLE_WEB/awws/WebservicePlus.awws #http://10.132.4.66:8088/mockJirama #
   codeJirama: Jirama
   

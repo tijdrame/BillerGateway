@@ -146,9 +146,9 @@ public class GeneriqueApiService {
         }
         log.info("req param after 3 = [{}]", requestParam);
         //if(billRequest.getBillerCode().equalsIgnoreCase("jirama")){
-        if(applicationProperties.getCodeJirama().equalsIgnoreCase("jirama")){
+        if(billRequest.getBillerCode().equalsIgnoreCase(applicationProperties.getCodeJirama())){
             ObjectMapper mapper = new ObjectMapper();
-            CheckFactoryRequest cardsRequest;
+            CheckFactoryRequest cardsRequest = new CheckFactoryRequest();
             try {
                 cardsRequest = mapper.readValue(requestParam, CheckFactoryRequest.class);
                 genericResponse = apiService.checkFactory(cardsRequest, request);

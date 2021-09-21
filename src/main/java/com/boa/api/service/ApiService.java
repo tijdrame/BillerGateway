@@ -174,7 +174,7 @@ public class ApiService {
 
                     tabErr = errObj.get("Check_fact_cbarreResult").toString().split("#");
                     exceptionResponse.setNumber(tabErr[0].trim());
-                    exceptionResponse.setDescription(tabErr[1].trim());
+                    exceptionResponse.setDescription(tabErr.length==2 ? tabErr[1].trim() : "");
                     ResponseRequest responseRequest = new ResponseRequest();
                     responseRequest.setBillerCode(cardsRequest.getBillerCode().toUpperCase());
                     responseRequest.setLangue(cardsRequest.getLangue());
