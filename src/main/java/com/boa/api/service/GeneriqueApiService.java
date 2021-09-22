@@ -25,6 +25,7 @@ import com.boa.api.request.CheckFactoryRequest;
 import com.boa.api.request.GetAccountRequest;
 import com.boa.api.request.GetBillFeesRequest;
 import com.boa.api.request.GetBillRequest;
+import com.boa.api.request.GetBillsByRefJiramaReq;
 import com.boa.api.request.GetBillsByRefRequest;
 import com.boa.api.request.NotificationPaiementRequest;
 import com.boa.api.request.PayementRequest;
@@ -154,17 +155,9 @@ public class GeneriqueApiService {
                 genericResponse = apiService.checkFactory(cardsRequest, request);
                 return genericResponse;
             } catch (Exception e) {
-                String msgErr = "Exception lors du parsing " + requestParam;
+                String msgErr = "Exception lors du parsing de CheckFactoryRequest " + requestParam;
                 log.info(msgErr+" {}", e);
             }
-            /*cardsRequest.setBillerCnss();
-            cardsRequest.setBillerCode(billRequest.getBillerCode());
-            //cardsRequest.setBillerJirama();
-            cardsRequest.setChannel(billRequest.getChannelType());
-            cardsRequest.setLangue(billRequest.getLangue());
-            cardsRequest.setRefenca(billRequest.);
-            cardsRequest.setTelcli();
-            cardsRequest.setVnumFact();*/
             
         }
         URL url;
@@ -409,7 +402,20 @@ public class GeneriqueApiService {
                 }
             }
         }
-        log.info("req param after 3 = [{}]", requestParam);
+        
+        log.info("req getBillsByRef to send = [{}]", requestParam);
+        if(cardsRequest.getBillerCode().equalsIgnoreCase(applicationProperties.getCodeJirama())){
+            ObjectMapper mapper = new ObjectMapper();
+            GetBillsByRefJiramaReq billsByRefJiramaReq = new GetBillsByRefJiramaReq();
+            try {
+                billsByRefJiramaReq = mapper.readValue(requestParam, GetBillsByRefJiramaReq.class);
+                genericResponse = apiService.getBillsByRef(billsByRefJiramaReq, request);
+                return genericResponse;
+            } catch (Exception e) {
+                String msgErr = "Exception lors du parsing de GetBillsByRefJiramaReq =" + requestParam;
+                log.info(msgErr+" {}", e);
+            }
+        }
         URL url;
         OutputStream os = null;
         String urlRequest = webServices.getEndPointExpose();
@@ -923,6 +929,34 @@ public class GeneriqueApiService {
         }
         String requestParam = webServices.getXmlRequest();
         // set params In based in nameCorresp
+        for (WebServiceParams it : webServices.getServiceParams()) {
+            if (it.getParamSens().equalsIgnoreCase("I")) {
+                log.info("inf = [{}]", it.getParamNameCorresp());
+                try {
+                    Object fs = new PropertyDescriptor(it.getParamNameCorresp(), PayementRequest.class).getReadMethod()
+                            .invoke(payementRequest);
+                    log.info("invoke = [{}]", fs);
+                    requestParam = requestParam.replace("#" + it.getOrdre() + "#", fs.toString());
+                } catch (Exception e1) {
+                    return genericResponse = (PayementResponse) apiService.clientAbsent(genericResponse, tracking,
+                            payBillService, ICodeDescResponse.ECHEC_CHAMP_CODE, ICodeDescResponse.ECHEC_CHAMP_DESC,
+                            payementRequest.toString(), tab[1]);
+                }
+            }
+        }
+        log.info("req PayementRequest  = [{}]", requestParam);
+        if(payementRequest.getBillerCode().equalsIgnoreCase(applicationProperties.getCodeJirama())){
+            ObjectMapper mapper = new ObjectMapper();
+            PayementRequest jirPayementRequest = new PayementRequest();
+            try {
+                jirPayementRequest = mapper.readValue(requestParam, PayementRequest.class);
+                genericResponse = apiService.payBill(jirPayementRequest, request);
+                return genericResponse;
+            } catch (Exception e) {
+                String msgErr = "Exception lors du parsing de PayementRequest =" + requestParam;
+                log.info(msgErr+" {}", e);
+            }
+        }
 
         GetBillRequest billRequest = new GetBillRequest();
         billRequest.setBillerCode(payementRequest.getBillerCode());// TODO payementRequest.getBillerCode()
@@ -983,25 +1017,7 @@ public class GeneriqueApiService {
         payementRequest.setPays(billerByCodeResponse.getPAYS());
         payementRequest.setContent(webServices.getProtocole().toUpperCase());
 
-        for (WebServiceParams it : webServices.getServiceParams()) {
-            if (it.getParamSens().equalsIgnoreCase("I")) {
-                log.info("inf = [{}]", it.getParamNameCorresp());
-                try {
-                    Object fs = new PropertyDescriptor(it.getParamNameCorresp(), PayementRequest.class).getReadMethod()
-                            .invoke(payementRequest);
-                    log.info("invoke = [{}]", fs);
-                    requestParam = requestParam.replace("#" + it.getOrdre() + "#", fs.toString());
-                } catch (Exception e1) {
-                    return genericResponse = (PayementResponse) apiService.clientAbsent(genericResponse, tracking,
-                            payBillService, ICodeDescResponse.ECHEC_CHAMP_CODE, ICodeDescResponse.ECHEC_CHAMP_DESC,
-                            payementRequest.toString(), tab[1]);
-                }
-            }
-        }
-        /*if(payementRequest.getBillerCode().equalsIgnoreCase("jirama")){
-            payementRequest.setAmount(payementRequest.getAmount() /100);
-        }*/
-        log.info("req param after 3 = [{}]", requestParam);
+        
 
         URL url;
         OutputStream os = null;
