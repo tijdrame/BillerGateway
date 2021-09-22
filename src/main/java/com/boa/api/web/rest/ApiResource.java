@@ -142,13 +142,13 @@ public class ApiResource {
     public ResponseEntity<GetBillsByRefResponse> getBillsByRef(@RequestBody GetBillsByRefRequest billsByRefRequest,
             HttpServletRequest request) throws URISyntaxException {
         log.debug("REST request to getBillsByRef : {}", billsByRefRequest);
-        GetBillsByRefJiramaReq cardsRequest = new GetBillsByRefJiramaReq();
+        /* = new GetBillsByRefJiramaReq();
         cardsRequest.setRefenca(billsByRefRequest.getCashingRef());
         cardsRequest.setTelcli(billsByRefRequest.getRequierNumber());
         cardsRequest.setLangue(billsByRefRequest.getLangue());
         cardsRequest.setBillerCode(billsByRefRequest.getBillerCode());
         cardsRequest.setVref(billsByRefRequest.getBillRef());
-        cardsRequest.setChannel(billsByRefRequest.getChannelType());
+        cardsRequest.setChannel(billsByRefRequest.getChannelType());*/
         GetBillsByRefResponse response = new GetBillsByRefResponse();
         /*
          * if (controleParam(cardsRequest.getVref()) ||

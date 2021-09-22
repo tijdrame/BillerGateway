@@ -223,7 +223,7 @@ public class ApiService {
                     responseRequest.setBillerCode(cardsRequest.getBillerCode());
                     responseRequest.setLangue(cardsRequest.getLangue());
                     responseRequest.setRetourCode("200");
-                    responseRequest.setServiceName(ICodeDescResponse.SERVICE_CHECK_REF_PTF);
+                    responseRequest.setServiceName(ICodeDescResponse.SERVICE_CHECK_FACTURE_PTF);
 
                     ResponseResponse responseResponse = getResponse(responseRequest);
 
@@ -749,6 +749,7 @@ public class ApiService {
 
                         genericResponse.getBillList().add(itemResp);
                     }
+                    log.info("before call responseRequest [{}]", genericResponse);
                     ResponseRequest responseRequest = new ResponseRequest();
                     responseRequest.setBillerCode(cardsRequest.getBillerCode());
                     responseRequest.setLangue(cardsRequest.getLangue());
@@ -788,11 +789,11 @@ public class ApiService {
         } catch (
 
         Exception e) {
-            try {
+            /*try {
                 os.close();
             } catch (IOException e1) {
                 log.error("errorrr== [{}]", e1.getMessage());
-            }
+            }*/
             log.error("errorrr== [{}]", e.getMessage());
             genericResponse = (GetBillsByRefResponse) clientAbsent(genericResponse, tracking, "getBillsByRef",
                     ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC + e.getMessage(),
@@ -1167,7 +1168,7 @@ public class ApiService {
                     tracking.setDateRequest(Instant.now());
                     os.close();
                 } else if (!obj.toString().contains("-1")) {
-                    log.info("succ == [{}]", obj.toString());
+                    //log.info("succ == [{}]", obj.toString());
 
                     log.info("success ===  [{}]", obj.toString());
 
@@ -1193,11 +1194,11 @@ public class ApiService {
             }
 
         } catch (Exception e) {
-            try {
+            /*try {
                 os.close();
             } catch (IOException e1) {
                 log.error("errorrr==> [{}]", e1.getMessage());
-            }
+            }*/
             log.error("errorrr== [{}]", e.getMessage());
             genericResponse = (GetBillFeesResponse) clientAbsent(genericResponse, tracking, "getBillFees",
                     ICodeDescResponse.FILIALE_ABSENT_CODE, ICodeDescResponse.FILIALE_ABSENT_DESC + e.getMessage(),

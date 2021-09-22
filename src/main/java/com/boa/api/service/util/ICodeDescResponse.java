@@ -19,7 +19,7 @@ public interface ICodeDescResponse {
     public static String FEES_NON_TROUVE = "Frais non trouve.";
     public static String PARAM_DESCRIPTION = "Parametre(s) obligatoire(s) absent(s)";
     public static String SUCCES_DESCRIPTION = "Opération effectuée avec succés!!!";
-    public static String FILIALE_ABSENT_DESC = "Proxy injoignable";
+    public static String FILIALE_ABSENT_DESC = "Une erreur est survenue ";
     public static String CLIENT_ABSENT_DESC = "Numéro Client absent dans nos livres!";
     public static String PARAM_ABSENT_DESC = "Paramétre non trouvé!";
     public static String SERVICE_ABSENT_DESC = "Service non paramétré!";

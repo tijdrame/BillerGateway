@@ -514,6 +514,7 @@ public class GeneriqueApiService {
                                     log.info("taill tab = [{}]", tabSuccess.length);
                                     for (int i = 0; i < tabSuccess.length; i++) {
                                         String[] tabTemp = tabSuccess[i].split(split);
+                                        if(tabTemp==null || tabTemp.length < 7) continue;
                                         ItemResp itemResp = new ItemResp();
                                         itemResp.setBillAmount(Double.valueOf(tabTemp[3]));
                                         itemResp.setBillDate(tabTemp[2]);
@@ -538,7 +539,7 @@ public class GeneriqueApiService {
                                     responseRequest.setBillerCode(cardsRequest.getBillerCode());
                                     responseRequest.setLangue(cardsRequest.getLangue());
                                     responseRequest.setRetourCode(ICodeDescResponse.SUCCES_CODE);
-                                    responseRequest.setServiceName(ICodeDescResponse.SERVICE_CHECK_REF_PTF);
+                                    responseRequest.setServiceName(webServices.getServiceName());
                                     ResponseResponse responseResponse = apiService.getResponse(responseRequest);
 
                                     genericResponse.setCode(
@@ -571,7 +572,7 @@ public class GeneriqueApiService {
                                     responseRequest.setBillerCode(cardsRequest.getBillerCode().toUpperCase());
                                     responseRequest.setLangue(cardsRequest.getLangue());
                                     responseRequest.setRetourCode(tabErr[0].trim());
-                                    responseRequest.setServiceName(ICodeDescResponse.SERVICE_CHECK_REF_PTF);
+                                    responseRequest.setServiceName(webServices.getServiceName());
 
                                     ResponseResponse responseResponse = apiService.getResponse(responseRequest);
 
