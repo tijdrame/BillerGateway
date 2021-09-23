@@ -1293,7 +1293,7 @@ public class ApiService {
 
             builder.append("<urn:vdate_paie>" + payementRequest.getPaymentDate() + "</urn:vdate_paie>");
             builder.append("<urn:vtel_client>" + payementRequest.getPhoneNumber() + "</urn:vtel_client>");
-            Double amount = checkFactoryResponse.getBillAmount() / 100;
+            Integer amount = checkFactoryResponse.getBillAmount().intValue() / 100;
             builder.append("<urn:vmontant>" + amount + "</urn:vmontant>");
             builder.append("<urn:vtel_jirama>" + billerByCodeResponse.getTELEPHONE() + "</urn:vtel_jirama>");
             builder.append("</urn:Paie_Mobile></soapenv:Body></soapenv:Envelope>");
@@ -1303,7 +1303,7 @@ public class ApiService {
             builder.append("<compteDebit>" + payementRequest.getCustomerAccount() + "</compteDebit>");
             builder.append("<compteCredit>" + accountResponse.getNumAccount() + "</compteCredit>");
             builder.append("<montantFact>" + amount + "</montantFact>");
-            Double fees = billFeesResponse.getMontantFrais();
+            Integer fees = billFeesResponse.getMontantFrais().intValue();
             builder.append("<montantFrais>" + fees + "</montantFrais>");
             builder.append("<libelle>" + payementRequest.getDescription() + "</libelle>");
             builder.append("<deviseFact>" + billerByCodeResponse.getDEVISE() + "</deviseFact>");
