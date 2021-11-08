@@ -46,10 +46,12 @@ public class BillerT implements Serializable {
 
     @Column(name = "ADDRESS")
     private String address;
-
+    
     @Lob
     @Column(name = "LOGO")
-    private String logo;
+    private byte[] logo;
+
+    //private String logo;
 
     @Column(name = "WEBSITE")
     private String website;
@@ -188,19 +190,22 @@ public class BillerT implements Serializable {
         this.address = address;
     }
 
-    public String getLogo() {
-        return logo;
+
+    public byte[] getLogo() {
+        return this.logo;
     }
 
-    public BillerT logo(String logo) {
+    public void setLogo(byte[] logo) {
+        this.logo = logo;
+    }
+    
+
+    public BillerT logo(byte[] logo) {
         this.logo = logo;
         return this;
     }
 
-    public void setLogo(String logo) {
-        this.logo = logo;
-    }
-
+    
     public String getWebsite() {
         return website;
     }

@@ -1101,7 +1101,7 @@ public class GeneriqueApiService {
                             responseRequest.setBillerCode(payementRequest.getBillerCode());
                             responseRequest.setLangue(payementRequest.getLangue());
                             responseRequest.setRetourCode(tabErr[0].trim());
-                            responseRequest.setServiceName(webServices.getServiceName());//ICodeDescResponse.SERVICE_PAIEMENT
+                            responseRequest.setServiceName(ICodeDescResponse.SERVICE_PAIEMENT);//webServices.getServiceName()
 
                             ResponseResponse responseResponse = apiService.getResponse(responseRequest);
 
@@ -1156,7 +1156,7 @@ public class GeneriqueApiService {
                             responseRequest.setBillerCode(payementRequest.getBillerCode());
                             responseRequest.setLangue(payementRequest.getLangue());
                             responseRequest.setRetourCode(obj.getString("PCOD"));
-                            responseRequest.setServiceName(webServices.getServiceName());
+                            responseRequest.setServiceName(ICodeDescResponse.SERVICE_PAIEMENT);
                             ResponseResponse responseResponse = apiService.getResponse(responseRequest);
 
                             genericResponse

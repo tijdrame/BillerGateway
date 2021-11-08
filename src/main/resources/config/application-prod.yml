@@ -33,9 +33,9 @@ spring:
       enabled: false
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:oracle:thin:@10.170.102.30:1521/billpay
+    url: jdbc:oracle:thin:@10.132.71.41:1521/mktdb #jdbc:oracle:thin:@10.170.102.30:1521/billpay
     username: DBFACTURIER
-    password: Hysi_Ut12_p
+    password: facturier #Hysi_Ut12_p
     hikari:
       poolName: Hikari
       auto-commit: false
