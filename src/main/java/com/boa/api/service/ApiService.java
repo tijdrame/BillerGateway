@@ -1050,6 +1050,8 @@ public class ApiService {
                             biller.setStatus(myObj.getString("STATUS"));
                             biller.setTelephone(myObj.getString("TELEPHONE"));
                             biller.setWebsite(myObj.getString("WEBSITE"));
+                            biller.setLibelleCategory(myObj.getString("LIBELLE_GATEGORY"));
+
                             genericResponse.getBillers().add(biller);
                         }
                     } else {
@@ -1067,6 +1069,7 @@ public class ApiService {
                         biller.setStatus(myObj.getString("STATUS"));
                         biller.setTelephone(myObj.getString("TELEPHONE"));
                         biller.setWebsite(myObj.getString("WEBSITE"));
+                        biller.setLibelleCategory(myObj.getString("LIBELLE_GATEGORY"));
                         genericResponse.getBillers().add(biller);
                     }
                     tracking.setCodeResponse(ICodeDescResponse.SUCCES_CODE);
@@ -1605,6 +1608,7 @@ public class ApiService {
                     genericResponse.setSTATUS(obj.getString("STATUS"));
                     genericResponse.setTELEPHONE(obj.getString("TELEPHONE"));
                     genericResponse.setWEBSITE(obj.getString("WEBSITE"));
+                    genericResponse.setLIBELLE_GATEGORY(obj.getString("LIBELLE_GATEGORY"));
                     tracking.setCodeResponse(ICodeDescResponse.SUCCES_CODE);
                     tracking.setDateResponse(Instant.now());
                     tracking.setEndPointTr("getBillerByCode");

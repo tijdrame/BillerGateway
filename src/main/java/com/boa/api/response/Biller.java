@@ -17,6 +17,27 @@ public class Biller {
     private String logo;
     private String website;
     private String billerCategory;
+    private String libelleCategory;
+
+
+    public Biller() {
+    }
+
+    public Biller(Long billerId, String billerCode, String name, String pays, String channel, String email, String telephone, String status, String address, String logo, String website, String billerCategory, String libelleCategory) {
+        this.billerId = billerId;
+        this.billerCode = billerCode;
+        this.name = name;
+        this.pays = pays;
+        this.channel = channel;
+        this.email = email;
+        this.telephone = telephone;
+        this.status = status;
+        this.address = address;
+        this.logo = logo;
+        this.website = website;
+        this.billerCategory = billerCategory;
+        this.libelleCategory = libelleCategory;
+    }
 
     public Long getBillerId() {
         return this.billerId;
@@ -114,21 +135,96 @@ public class Biller {
         this.billerCategory = billerCategory;
     }
 
+    public String getLibelleCategory() {
+        return this.libelleCategory;
+    }
+
+    public void setLibelleCategory(String libelleCategory) {
+        this.libelleCategory = libelleCategory;
+    }
+
+    public Biller billerId(Long billerId) {
+        setBillerId(billerId);
+        return this;
+    }
+
+    public Biller billerCode(String billerCode) {
+        setBillerCode(billerCode);
+        return this;
+    }
+
+    public Biller name(String name) {
+        setName(name);
+        return this;
+    }
+
+    public Biller pays(String pays) {
+        setPays(pays);
+        return this;
+    }
+
+    public Biller channel(String channel) {
+        setChannel(channel);
+        return this;
+    }
+
+    public Biller email(String email) {
+        setEmail(email);
+        return this;
+    }
+
+    public Biller telephone(String telephone) {
+        setTelephone(telephone);
+        return this;
+    }
+
+    public Biller status(String status) {
+        setStatus(status);
+        return this;
+    }
+
+    public Biller address(String address) {
+        setAddress(address);
+        return this;
+    }
+
+    public Biller logo(String logo) {
+        setLogo(logo);
+        return this;
+    }
+
+    public Biller website(String website) {
+        setWebsite(website);
+        return this;
+    }
+
+    public Biller billerCategory(String billerCategory) {
+        setBillerCategory(billerCategory);
+        return this;
+    }
+
+    public Biller libelleCategory(String libelleCategory) {
+        setLibelleCategory(libelleCategory);
+        return this;
+    }
+
     @Override
     public String toString() {
         return "{" +
-            " billerId='" + billerId + "'" +
-            ", billerCode='" + billerCode + "'" +
-            ", name='" + name + "'" +
-            ", pays='" + pays + "'" +
-            ", channel='" + channel + "'" +
-            ", email='" + email + "'" +
-            ", telephone='" + telephone + "'" +
-            ", status='" + status + "'" +
-            ", address='" + address + "'" +
-            //", logo='" + logo + "'" +
-            ", website='" + website + "'" +
-            ", billerCategory='" + billerCategory + "'" +
+            " billerId='" + getBillerId() + "'" +
+            ", billerCode='" + getBillerCode() + "'" +
+            ", name='" + getName() + "'" +
+            ", pays='" + getPays() + "'" +
+            ", channel='" + getChannel() + "'" +
+            ", email='" + getEmail() + "'" +
+            ", telephone='" + getTelephone() + "'" +
+            ", status='" + getStatus() + "'" +
+            ", address='" + getAddress() + "'" +
+            ", logo='" + getLogo() + "'" +
+            ", website='" + getWebsite() + "'" +
+            ", billerCategory='" + getBillerCategory() + "'" +
+            ", libelleCategory='" + getLibelleCategory() + "'" +
             "}";
     }
+    
 }

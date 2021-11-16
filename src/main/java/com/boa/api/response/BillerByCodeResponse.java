@@ -18,6 +18,7 @@ public class BillerByCodeResponse extends GenericResponse{
     private String wEBSITE;
     private String bILLERCATEGORY;
     private String dEVISE;
+    private String LIBELLE_GATEGORY;
 
 
     public Integer getBILLERID() {
@@ -124,6 +125,14 @@ public class BillerByCodeResponse extends GenericResponse{
         this.dEVISE = dEVISE;
     }
 
+    public String getLIBELLE_GATEGORY() {
+        return this.LIBELLE_GATEGORY;
+    }
+
+    public void setLIBELLE_GATEGORY(String LIBELLE_GATEGORY) {
+        this.LIBELLE_GATEGORY = LIBELLE_GATEGORY;
+    }
+
     @Override
     public String toString() {
         return "{" +
@@ -140,6 +149,7 @@ public class BillerByCodeResponse extends GenericResponse{
             ", wEBSITE='" + wEBSITE + "'" +
             ", bILLERCATEGORY='" + bILLERCATEGORY + "'" +
             ", dEVISE='" + dEVISE + "'" +
+            ", LIBELLE_GATEGORY='" + LIBELLE_GATEGORY + "'" +
             "}";
     }
 }
