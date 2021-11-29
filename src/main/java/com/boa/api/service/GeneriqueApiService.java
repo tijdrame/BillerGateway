@@ -723,7 +723,7 @@ public class GeneriqueApiService {
     private GetBillsByRefResponse constructRespBillsRef(WebServices webServices, String result,
             GetBillsByRefResponse genericResponse, String billerCode, String langue, Tracking tracking,
             HttpServletRequest request, String token) throws Exception {
-        log.info("json [{}]", result);
+        log.info("json result [{}]", result);
         if (result == null) {
             genericResponse.setCode(ICodeDescResponse.ECHEC_CODE);
             genericResponse.setDescription(ICodeDescResponse.RESPONSE_INC);
@@ -847,6 +847,26 @@ public class GeneriqueApiService {
                                 variableName.set(genericResponse, object.get(it.getParamName()).toString());
                             }
 
+                        }else {
+                            Boolean resp = objectHasProperty(itemResp, it.getParamNameCorresp());
+                            if (resp) {
+                                Field variableName2 = itemResp.getClass().getDeclaredField(it.getParamNameCorresp());
+                                variableName2.setAccessible(true);
+
+                                if (it.getParamNameCorresp().equalsIgnoreCase("billAmount")
+                                        || it.getParamNameCorresp().equalsIgnoreCase("feeAmount")) {
+
+                                    Double amount = Double.valueOf(!StringUtils.isEmpty(object.get(it.getParamName()))
+                                            ? object.get(it.getParamName()).toString()
+                                            : "0");
+                                    variableName2.set(itemResp, amount);
+                                } else
+                                    variableName2.set(itemResp, (object.get(it.getParamName())).toString());
+                            } else {
+                                variableName = genericResponse.getClass().getDeclaredField(it.getParamNameCorresp());
+                                variableName.setAccessible(true);
+                                variableName.set(genericResponse, object.get(it.getParamName()).toString());
+                            }
                         }
 
                     }
@@ -854,6 +874,14 @@ public class GeneriqueApiService {
             }
             itemResps.add(itemResp);
             genericResponse.setBillList(itemResps);
+        }
+        if(genericResponse.getBillList()!=null && genericResponse.getBillList().size()>=1){
+            for (ItemResp itemResp : genericResponse.getBillList()) {
+                if(billerCode.equalsIgnoreCase("cnps")){
+                    tracking.setCnpsMontantBill(itemResp.getBillAmount());
+                    tracking.setCnpsTransactionId(itemResp.getBillNum());
+                } 
+            }
         }
 
         /* if(billerCode.equalsIgnoreCase("cnps")){

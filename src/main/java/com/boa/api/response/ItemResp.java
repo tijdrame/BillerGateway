@@ -77,4 +77,18 @@ public class ItemResp  {
         this.sessionNum = sessionNum;
     }
 
+    @Override
+    public String toString() {
+        return "{" +
+            " billNum='" + billNum + "'" +
+            ", custumerRef='" + custumerRef + "'" +
+            ", billDate='" + billDate + "'" +
+            ", billAmount='" + billAmount + "'" +
+            ", requierNumber='" + requierNumber + "'" +
+            ", customerName='" + customerName + "'" +
+            ", sessionNum='" + sessionNum + "'" +
+            ", feeAmount='" + feeAmount + "'" +
+            "}";
+    }
+
 }

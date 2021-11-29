@@ -58,6 +58,17 @@ public class GetBillsByRefResponse extends GenericResponse{
     public void setDateResponse(Instant dateResponse) {
         this.dateResponse = dateResponse;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+            " billList='" + billList + "'" +
+            ", exceptionResponse='" + exceptionResponse + "'" +
+            ", code='" + code + "'" +
+            ", description='" + description + "'" +
+            ", dateResponse='" + dateResponse + "'" +
+            "}";
+    }
     
 }
 
