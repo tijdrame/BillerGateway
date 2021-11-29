@@ -1608,7 +1608,7 @@ public class ApiService {
                     genericResponse.setSTATUS(obj.getString("STATUS"));
                     genericResponse.setTELEPHONE(obj.getString("TELEPHONE"));
                     genericResponse.setWEBSITE(obj.getString("WEBSITE"));
-                    genericResponse.setLIBELLE_GATEGORY(obj.getString("LIBELLE_GATEGORY"));
+                    genericResponse.setLibelleCategory(obj.getString("LIBELLE_GATEGORY"));;
                     tracking.setCodeResponse(ICodeDescResponse.SUCCES_CODE);
                     tracking.setDateResponse(Instant.now());
                     tracking.setEndPointTr("getBillerByCode");

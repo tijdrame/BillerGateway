@@ -70,4 +70,10 @@ public class TrackingService {
         log.debug("Request to delete Tracking : {}", id);
         trackingRepository.deleteById(id);
     }
+
+    @Transactional(readOnly = true)
+    public List<Tracking> findByCnpsTransactionId(String cnpsTransactionId) {
+        log.info("Request to get By cnpsTransactionId [{}]", cnpsTransactionId);
+        return trackingRepository.findByCnpsTransactionId(cnpsTransactionId);
+    }
 }

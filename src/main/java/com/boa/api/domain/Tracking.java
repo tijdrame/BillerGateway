@@ -47,6 +47,13 @@ public class Tracking implements Serializable {
     @Column(name = "request_tr")
     private String requestTr;
 
+    @Column(name = "cnps_transaction_Id")
+    private String cnpsTransactionId;
+
+    @Column(name = "cnps_montant_bill")
+    private Double cnpsMontantBill;
+
+
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
         return id;
@@ -161,6 +168,54 @@ public class Tracking implements Serializable {
     }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
+    public Tracking() {
+    }
+
+    public Tracking(Long id, String tokenTr, String responseTr, String codeResponse, String endPointTr, Instant dateRequest, Instant dateResponse, String loginActeur, String requestTr, String cnpsTransactionId, Double cnpsMontantBill) {
+        this.id = id;
+        this.tokenTr = tokenTr;
+        this.responseTr = responseTr;
+        this.codeResponse = codeResponse;
+        this.endPointTr = endPointTr;
+        this.dateRequest = dateRequest;
+        this.dateResponse = dateResponse;
+        this.loginActeur = loginActeur;
+        this.requestTr = requestTr;
+        this.cnpsTransactionId = cnpsTransactionId;
+        this.cnpsMontantBill = cnpsMontantBill;
+    }
+
+    public String getCnpsTransactionId() {
+        return this.cnpsTransactionId;
+    }
+
+    public void setCnpsTransactionId(String cnpsTransactionId) {
+        this.cnpsTransactionId = cnpsTransactionId;
+    }
+
+    public Double getCnpsMontantBill() {
+        return this.cnpsMontantBill;
+    }
+
+    public void setCnpsMontantBill(Double cnpsMontantBill) {
+        this.cnpsMontantBill = cnpsMontantBill;
+    }
+
+    public Tracking id(Long id) {
+        setId(id);
+        return this;
+    }
+
+    public Tracking cnpsTransactionId(String cnpsTransactionId) {
+        setCnpsTransactionId(cnpsTransactionId);
+        return this;
+    }
+
+    public Tracking cnpsMontantBill(Double cnpsMontantBill) {
+        setCnpsMontantBill(cnpsMontantBill);
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -189,6 +244,8 @@ public class Tracking implements Serializable {
             ", dateResponse='" + getDateResponse() + "'" +
             ", loginActeur='" + getLoginActeur() + "'" +
             ", requestTr='" + getRequestTr() + "'" +
+            ", cnpsTransactionId='" + getCnpsTransactionId() + "'" +
+            ", cnpsMontantBill='" + getCnpsMontantBill() + "'" +
             "}";
     }
 }

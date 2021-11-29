@@ -199,7 +199,7 @@ public class PayementRequest {
     }
 
     public String getCodopsc() {
-        return this.codopsc = "GAB";
+        return this.codopsc;// = "GAB";
     }
 
     public void setCodopsc(String codopsc) {

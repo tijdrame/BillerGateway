@@ -291,7 +291,16 @@ public class ApiResource {
             response.setDescription(ICodeDescResponse.PARAM_DESCRIPTION);
             return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
         }
-        response = generiqueApiService.payBill(payementRequest, request);
+        if(payementRequest.getBillerCode().equalsIgnoreCase("cnps")){
+            /*NotificationPaiementRequest nPaiementRequest = new NotificationPaiementRequest();
+            nPaiementRequest.setBillerCode(payementRequest.getBillerCode());
+            nPaiementRequest.setChannelType(payementRequest.getChannelType());
+            nPaiementRequest.compteDeb(payementRequest.getCompteDeb()).langue(payementRequest.getLangue());
+            nPaiementRequest.billNum(payementRequest.getBillNum()).billerReference(payementRequest.getBillRefTrx());*/
+            response = generiqueApiService.notificationPaiementBis(payementRequest, request);
+        }else {
+            response = generiqueApiService.payBill(payementRequest, request);
+        }
         return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
     }
 

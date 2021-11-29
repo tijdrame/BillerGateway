@@ -47,6 +47,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -693,6 +694,10 @@ public class GeneriqueApiService {
                 }
             }
         }
+        if(billerCode.equalsIgnoreCase("cnps")){
+            tracking.setCnpsMontantBill(genericResponse.getBillAmount());
+            tracking.setCnpsTransactionId(genericResponse.getRequierNumber());
+        }
 
         log.info("resp [{}]", genericResponse);
         ResponseRequest responseRequest = new ResponseRequest();
@@ -850,6 +855,11 @@ public class GeneriqueApiService {
             itemResps.add(itemResp);
             genericResponse.setBillList(itemResps);
         }
+
+        /* if(billerCode.equalsIgnoreCase("cnps")){
+            tracking.setCnpsMontantBill(genericResponse.getBillAmount());
+            tracking.setCnpsTransactionId(genericResponse.getBillList().get(0).getbi);
+        } */
 
         log.info("resp [{}]", genericResponse);
         ResponseRequest responseRequest = new ResponseRequest();
@@ -1372,6 +1382,7 @@ public class GeneriqueApiService {
             genericResponse.setAnnulationCode(null);
             genericResponse.setAnnulationMsg(null);
         }
+        
         log.info("resp [{}]", genericResponse);
         ResponseRequest responseRequest = new ResponseRequest();
         responseRequest.setBillerCode(billerCode);
@@ -1465,18 +1476,7 @@ public class GeneriqueApiService {
         nPaiementRequest.setCompteCredit(accountResponse.getNumAccount());
         nPaiementRequest.valDisponible("V").disponible("DISPONIBLE").libelle("Paiement CNPS");
 
-        GetBillFeesRequest billFeesRequest = new GetBillFeesRequest();
-        billFeesRequest.setBillerCode(nPaiementRequest.getBillerCode());
-        billFeesRequest.setMontant(nPaiementRequest.getAmount().toString());// TODO montant du getBill
-        billFeesRequest.setTypeCanal(nPaiementRequest.getCanal());
-        GetBillFeesResponse billFeesResponse = apiService.getBillFees(billFeesRequest, request);
-        if (billFeesResponse == null || billFeesResponse.getMontantFrais() == null) {
-            genericResponse = (NotificationPaiementResponse) apiService.clientAbsent(genericResponse, tracking,
-                    "getBillFees in paiement", ICodeDescResponse.ECHEC_CODE, ICodeDescResponse.FEES_NON_TROUVE,
-                    request.getRequestURI(), tab[1]);
-            return genericResponse;
-        }
-        nPaiementRequest.setMntfrais(billFeesResponse.getMontantFrais());
+        
         // TODO call paiement wso2 if success process
 
         WebServices webServices = webServicesService.getWebServiceByParams(nPaiementRequest.getBillerCode(),
@@ -1487,6 +1487,7 @@ public class GeneriqueApiService {
                     getBillService, ICodeDescResponse.ECHEC_CODE, ICodeDescResponse.SERVICE_ABSENT_DESC,
                     nPaiementRequest.toString(), tab[1]);
         }
+        nPaiementRequest.setPays(webServices.getBillerT().getPays());
         String requestParam = webServices.getXmlRequest();
         for (WebServiceParams it : webServices.getServiceParams()) {
             if (it.getParamSens().equalsIgnoreCase("I")) {
@@ -1506,6 +1507,24 @@ public class GeneriqueApiService {
 
             }
         }
+        if(nPaiementRequest.getBillerCode().equalsIgnoreCase("cnps")){
+            List<Tracking> listTrackings = trackingService.findByCnpsTransactionId(nPaiementRequest.getVarString3());
+            if(listTrackings!=null && !listTrackings.isEmpty()){
+                nPaiementRequest.amount(listTrackings.get(0).getCnpsMontantBill());
+            }
+        }
+        GetBillFeesRequest billFeesRequest = new GetBillFeesRequest();
+        billFeesRequest.setBillerCode(nPaiementRequest.getBillerCode());
+        billFeesRequest.setMontant(nPaiementRequest.getAmount().toString());// TODO montant du getBill
+        billFeesRequest.setTypeCanal(nPaiementRequest.getCanal());
+        GetBillFeesResponse billFeesResponse = apiService.getBillFees(billFeesRequest, request);
+        if (billFeesResponse == null || billFeesResponse.getMontantFrais() == null) {
+            genericResponse = (NotificationPaiementResponse) apiService.clientAbsent(genericResponse, tracking,
+                    "getBillFees in paiement", ICodeDescResponse.ECHEC_CODE, ICodeDescResponse.FEES_NON_TROUVE,
+                    request.getRequestURI(), tab[1]);
+            return genericResponse;
+        }
+        nPaiementRequest.setMntfrais(billFeesResponse.getMontantFrais());
         log.info("req notif after  = [{}]", requestParam);
         HttpURLConnection conn = null;
         try {
@@ -1554,6 +1573,206 @@ public class GeneriqueApiService {
                     nPaiementRequest.toString(), tab[1]);
         }
 
+        return genericResponse;
+    }
+
+    public PayementResponse notificationPaiementBis(PayementRequest nPaiementRequest,
+            HttpServletRequest request) {
+        log.info("in service notificationPaiement [{}]", nPaiementRequest);
+        PayementResponse genericResponse = new PayementResponse();
+        Tracking tracking = new Tracking();
+        String autho = request.getHeader("Authorization");
+        String[] tab = autho.split("Bearer");
+
+        GetAccountRequest accountRequest = new GetAccountRequest();
+        accountRequest.setAccountType(ICodeDescResponse.ACCOUNT_PRINCIPAL);
+        accountRequest.setBillerCode(nPaiementRequest.getBillerCode());
+        GetAccountResponse accountResponse = apiService.getBillerAccount(accountRequest, request);
+        if (accountResponse == null || accountResponse.getNumAccount() == null) {
+            genericResponse = (PayementResponse) apiService.clientAbsent(genericResponse, tracking,
+                    "getBillAccount in paiement", ICodeDescResponse.ECHEC_CODE,
+                    ICodeDescResponse.ACCOUNT_PRINCIPAL_NON_TROUVE, request.getRequestURI(), tab[1]);
+            return genericResponse;
+        }
+        nPaiementRequest.setCompteCredit(accountResponse.getNumAccount());
+        nPaiementRequest.setVal("DISPONIBLE");
+        nPaiementRequest.setLibAuto("Paiement CNPS");
+        String strRandom = RandomStringUtils.randomAlphanumeric(15).toUpperCase();
+        nPaiementRequest.setCodopsc(strRandom);
+        
+        // TODO call paiement wso2 if success process
+
+        WebServices webServices = webServicesService.getWebServiceByParams(nPaiementRequest.getBillerCode(),
+                notifPaiementService);
+        log.info("ws = [{}]", webServices);
+        if (webServices == null) {
+            return genericResponse = (PayementResponse) apiService.clientAbsent(genericResponse, tracking,
+                    getBillService, ICodeDescResponse.ECHEC_CODE, ICodeDescResponse.SERVICE_ABSENT_DESC,
+                    nPaiementRequest.toString(), tab[1]);
+        }
+        nPaiementRequest.setPays(webServices.getBillerT().getPays());
+        if(nPaiementRequest.getBillerCode().equalsIgnoreCase("cnps")){
+            List<Tracking> listTrackings = trackingService.findByCnpsTransactionId(nPaiementRequest.getBillNum());
+            if(listTrackings!=null && !listTrackings.isEmpty()){
+                nPaiementRequest.setAmount(listTrackings.get(0).getCnpsMontantBill());
+            }
+        }
+        GetBillFeesRequest billFeesRequest = new GetBillFeesRequest();
+        billFeesRequest.setBillerCode(nPaiementRequest.getBillerCode());
+        billFeesRequest.setMontant(nPaiementRequest.getAmount().toString());// TODO montant du getBill
+        billFeesRequest.setTypeCanal(nPaiementRequest.getChannelType());
+        GetBillFeesResponse billFeesResponse = apiService.getBillFees(billFeesRequest, request);
+        if (billFeesResponse == null || billFeesResponse.getMontantFrais() == null) {
+            genericResponse = (PayementResponse) apiService.clientAbsent(genericResponse, tracking,
+                    "getBillFees in paiement", ICodeDescResponse.ECHEC_CODE, ICodeDescResponse.FEES_NON_TROUVE,
+                    request.getRequestURI(), tab[1]);
+            return genericResponse;
+        }
+        nPaiementRequest.setFees(billFeesResponse.getMontantFrais());
+
+        String requestParam = webServices.getXmlRequest();
+
+        for (WebServiceParams it : webServices.getServiceParams()) {
+            if (it.getParamSens().equalsIgnoreCase("I")) {
+                log.info("inf = [{}]", it.getParamNameCorresp());
+                try {
+                    Object fs = new PropertyDescriptor(it.getParamNameCorresp(), PayementRequest.class)
+                            .getReadMethod().invoke(nPaiementRequest);
+                    log.info("invoke = [{}]", fs);
+                    requestParam = requestParam.replace("#" + it.getOrdre() + "#", fs.toString());
+                } catch (Exception e1) {
+                    log.error("err = [{}]", e1.getMessage());
+                    e1.fillInStackTrace();
+                    return genericResponse = (PayementResponse) apiService.clientAbsent(genericResponse,
+                            tracking, getBillService, ICodeDescResponse.ECHEC_CHAMP_CODE,
+                            ICodeDescResponse.ECHEC_CHAMP_DESC, nPaiementRequest.toString(), tab[1]);
+                }
+
+            }
+        }
+        
+        log.info("req notif after  = [{}]", requestParam);
+        HttpURLConnection conn = null;
+        try {
+            conn = utils.doConnexion(webServices.getEndPointExpose(), requestParam, webServices.getProtocole(), null,
+                    null, false, null, null, webServices.getAttribute02());
+            BufferedReader br = null;
+            // JSONObject obj = new JSONObject();
+            String result = "";
+            log.info("resp code notif paiement [{}]", (conn != null ? conn.getResponseCode() : ""));
+            if (conn.getResponseCode() == 200) {
+                genericResponse.setCode(String.valueOf(conn.getResponseCode()));
+                br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String ligne = br.readLine();
+                while (ligne != null) {
+                    result += ligne;
+                    ligne = br.readLine();
+                }
+                log.info("resp notif paiement ===== [{}]", result);
+                tracking.setResponseTr(result);
+
+                constructRespNotifBis(webServices, result, genericResponse, nPaiementRequest.getLangue(),
+                         tracking, request, tab[1], nPaiementRequest, accountResponse, billFeesResponse);
+                log.info("json ==> [{}]", result);
+
+            } else {// !=200
+                genericResponse.setCode(String.valueOf(conn.getResponseCode()));
+                br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+                String ligne = br.readLine();
+                while (ligne != null) {
+                    result += ligne;
+                    ligne = br.readLine();
+                }
+                log.info("resp ===== [{}]", result);
+
+                // resp !=200 for json
+                constructRespNotifBis(webServices, result, genericResponse, nPaiementRequest.getLangue(),
+                         tracking, request, tab[1], nPaiementRequest, accountResponse, billFeesResponse);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("err = [{}]", e.getMessage());
+            // e.fillInStackTrace();
+            return genericResponse = (PayementResponse) apiService.clientAbsent(genericResponse, tracking,
+                    getBillService, ICodeDescResponse.ECHEC_CHAMP_CODE, ICodeDescResponse.ECHEC_CHAMP_DESC,
+                    nPaiementRequest.toString(), tab[1]);
+        }
+
+        return genericResponse;
+    }
+
+    private PayementResponse constructRespNotifBis(WebServices webServices, String result,
+    PayementResponse genericResponse, String langue, Tracking tracking,
+            HttpServletRequest request, String token, PayementRequest paiementRequest,
+            GetAccountResponse accountResponse, GetBillFeesResponse billFeesResponse) throws Exception {
+        log.info("resul json to build [{}]", result);
+        if (result == null) {
+            genericResponse.setCode(ICodeDescResponse.ECHEC_CODE);
+            genericResponse.setDescription(ICodeDescResponse.RESPONSE_INC);
+            genericResponse.setDateResponse(Instant.now());
+            return genericResponse;
+        }
+
+        for (WebServiceParams it : webServices.getServiceParams()) {
+            JSONObject object = new JSONObject(result);
+            if (it.getParamSens().equalsIgnoreCase("O")) {
+                log.info("p -> [{} ]", it.getParamName());
+                if (object.toString().contains(it.getParamName())) {
+                    Field variableName = genericResponse.getClass().getDeclaredField(it.getParamNameCorresp());
+                    variableName.setAccessible(true);
+                    Boolean flag = false;
+                    if (it.getParentResponse() != null) {
+                        String[] tt = it.getParentResponse().split("#");
+                        
+                        for (int i = 0; i < tt.length; i++) {
+                            flag = false;
+                            if (object.toString().contains(tt[i])) {
+                                log.info("tti [{}]", tt[i]);
+                                object = object.getJSONObject(tt[i]);
+                                flag = true;
+                            }
+                        }
+                    }
+                    if (it.getParamNameCorresp().equalsIgnoreCase("amount")
+                            || it.getParamNameCorresp().equalsIgnoreCase("feeAmount")) {
+
+                        Double amount = Double.valueOf(!StringUtils.isEmpty(object.get(it.getParamName()))
+                                ? object.get(it.getParamName()).toString()
+                                : "0");
+                        variableName.set(genericResponse, amount);
+                    } else if(flag)
+                        variableName.set(genericResponse, (object.get(it.getParamName())).toString());
+                    // variableName.set(genericResponse, object.get(it.getParamName()).toString());
+                }
+            }
+        }
+
+        log.info("resp generic notif [{}]", genericResponse);
+        ResponseRequest responseRequest = new ResponseRequest();
+        responseRequest.setBillerCode(paiementRequest.getBillerCode());
+        responseRequest.setLangue(langue);
+        // genericResponse.setCode(code);
+        responseRequest.setRetourCode(genericResponse.getCode());
+        responseRequest.setServiceName(webServices.getServiceName());
+
+        ResponseResponse responseResponse = apiService.getResponse(responseRequest);
+        genericResponse = (PayementResponse) apiService.clientAbsent(genericResponse, tracking,
+                webServices.getServiceName(),
+                (responseResponse == null /* || responseResponse.getCode().equals("0000") */)
+                        ? genericResponse.getCode()
+                        : responseResponse.getCode(),
+                (responseResponse == null /* || responseResponse.getCode().equals("0000") */)
+                        ? genericResponse.getDescription()
+                        : responseResponse.getDescription(),
+                request.getRequestURI(), token);
+        TransactionGlobal trG = apiService.createTransactionB(paiementRequest.getBillerCode(), paiementRequest.getChannelType(),
+          paiementRequest.getCompteDeb(), paiementRequest.getBillRefTrx(), genericResponse.getCode(),
+                "nameCustommer", accountResponse.getNumAccount(),billFeesResponse.getMontantFrais(), paiementRequest.getBillNum(),
+                "", paiementRequest.getAmount(),responseResponse.getDescription(), "");
+                //(String billerCode, String canal, String compteDeb,String reference, String codeRetour,
+    //String nom, String creditAccount, Double frais, String numFacture, String client, Double montant,
+    //String msgFr, String telephone)
         return genericResponse;
     }
 
