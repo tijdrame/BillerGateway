@@ -37,6 +37,7 @@ public interface ICodeDescResponse {
     public static String SERVICE_PAIEMENT = "Paie_Mobile";
     public static String BILLER_NAME = "JIRAMA";
     public static String ACCOUNT_PRINCIPAL = "P";
+    public static String ACCOUNT_SECONDAIRE = "S";
 
     /*-------------*/
     public static Integer COMPTE_ABSENT_CODE = 406;

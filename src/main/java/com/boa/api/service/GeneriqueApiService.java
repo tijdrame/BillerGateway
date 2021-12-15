@@ -880,6 +880,7 @@ public class GeneriqueApiService {
                 if(billerCode.equalsIgnoreCase("cnps")){
                     tracking.setCnpsMontantBill(itemResp.getBillAmount());
                     tracking.setCnpsTransactionId(itemResp.getBillNum());
+                    tracking.setCnpsCanal(itemResp.getNumTransaction());
                 } 
             }
         }
@@ -1539,6 +1540,7 @@ public class GeneriqueApiService {
             List<Tracking> listTrackings = trackingService.findByCnpsTransactionId(nPaiementRequest.getVarString3());
             if(listTrackings!=null && !listTrackings.isEmpty()){
                 nPaiementRequest.amount(listTrackings.get(0).getCnpsMontantBill());
+                nPaiementRequest.varString1(listTrackings.get(0).getCnpsCanal());
             }
         }
         GetBillFeesRequest billFeesRequest = new GetBillFeesRequest();
@@ -1612,17 +1614,7 @@ public class GeneriqueApiService {
         String autho = request.getHeader("Authorization");
         String[] tab = autho.split("Bearer");
 
-        GetAccountRequest accountRequest = new GetAccountRequest();
-        accountRequest.setAccountType(ICodeDescResponse.ACCOUNT_PRINCIPAL);
-        accountRequest.setBillerCode(nPaiementRequest.getBillerCode());
-        GetAccountResponse accountResponse = apiService.getBillerAccount(accountRequest, request);
-        if (accountResponse == null || accountResponse.getNumAccount() == null) {
-            genericResponse = (PayementResponse) apiService.clientAbsent(genericResponse, tracking,
-                    "getBillAccount in paiement", ICodeDescResponse.ECHEC_CODE,
-                    ICodeDescResponse.ACCOUNT_PRINCIPAL_NON_TROUVE, request.getRequestURI(), tab[1]);
-            return genericResponse;
-        }
-        nPaiementRequest.setCompteCredit(accountResponse.getNumAccount());
+        
         nPaiementRequest.setVal("DISPONIBLE");
         nPaiementRequest.setLibAuto("Paiement CNPS");
         String strRandom = RandomStringUtils.randomAlphanumeric(15).toUpperCase();
@@ -1643,8 +1635,22 @@ public class GeneriqueApiService {
             List<Tracking> listTrackings = trackingService.findByCnpsTransactionId(nPaiementRequest.getBillNum());
             if(listTrackings!=null && !listTrackings.isEmpty()){
                 nPaiementRequest.setAmount(listTrackings.get(0).getCnpsMontantBill());
+                nPaiementRequest.setContent(listTrackings.get(0).getCnpsCanal());
             }
         }
+        GetAccountRequest accountRequest = new GetAccountRequest();
+        if(nPaiementRequest.getBillerCode().equalsIgnoreCase("cnps")&& nPaiementRequest.getContent()!=null && nPaiementRequest.getContent().equalsIgnoreCase("cnam"))
+            accountRequest.setAccountType(ICodeDescResponse.ACCOUNT_SECONDAIRE);
+        else accountRequest.setAccountType(ICodeDescResponse.ACCOUNT_PRINCIPAL);
+        accountRequest.setBillerCode(nPaiementRequest.getBillerCode());
+        GetAccountResponse accountResponse = apiService.getBillerAccount(accountRequest, request);
+        if (accountResponse == null || accountResponse.getNumAccount() == null) {
+            genericResponse = (PayementResponse) apiService.clientAbsent(genericResponse, tracking,
+                    "getBillAccount in paiement", ICodeDescResponse.ECHEC_CODE,
+                    ICodeDescResponse.ACCOUNT_PRINCIPAL_NON_TROUVE, request.getRequestURI(), tab[1]);
+            return genericResponse;
+        }
+        nPaiementRequest.setCompteCredit(accountResponse.getNumAccount());
         GetBillFeesRequest billFeesRequest = new GetBillFeesRequest();
         billFeesRequest.setBillerCode(nPaiementRequest.getBillerCode());
         billFeesRequest.setMontant(nPaiementRequest.getAmount().toString());// TODO montant du getBill
@@ -1680,6 +1686,8 @@ public class GeneriqueApiService {
         }
         
         log.info("req notif after  = [{}]", requestParam);
+    
+
         HttpURLConnection conn = null;
         try {
             conn = utils.doConnexion(webServices.getEndPointExpose(), requestParam, webServices.getProtocole(), null,

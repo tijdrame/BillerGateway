@@ -53,6 +53,9 @@ public class Tracking implements Serializable {
     @Column(name = "cnps_montant_bill")
     private Double cnpsMontantBill;
 
+    @Column(name = "cnps_canal")
+    private String cnpsCanal;
+
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
@@ -216,6 +219,14 @@ public class Tracking implements Serializable {
         return this;
     }
 
+    public String getCnpsCanal() {
+        return this.cnpsCanal;
+    }
+
+    public void setCnpsCanal(String cnpsCanal) {
+        this.cnpsCanal = cnpsCanal;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -246,6 +257,7 @@ public class Tracking implements Serializable {
             ", requestTr='" + getRequestTr() + "'" +
             ", cnpsTransactionId='" + getCnpsTransactionId() + "'" +
             ", cnpsMontantBill='" + getCnpsMontantBill() + "'" +
+            ", cnpsCanal='" + getCnpsCanal() + "'" +
             "}";
     }
 }
