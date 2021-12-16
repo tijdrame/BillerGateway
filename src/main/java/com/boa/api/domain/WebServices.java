@@ -31,7 +31,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
  * WebServices
  */
 @Entity
-@Table(name = "BOA_BILM_WEBSERVICES_V")
+@Table(name = "BOA_BILM_WEBSERVICES_T")
 /*@NamedStoredProcedureQueries({
     @NamedStoredProcedureQuery(name = "WebServices.GET_WS_DETAILS", 
     procedureName = "BOA_BILM_GATEWAY_PKG.GET_WS_DETAILS",
