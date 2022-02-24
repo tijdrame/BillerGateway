@@ -14,6 +14,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TrackingRepository extends JpaRepository<Tracking, Long> {
 
-    public List<Tracking>findByCnpsTransactionId(String transactionId);
+    public List<Tracking>findByCnpsTransactionIdOrderByIdDesc(String transactionId);
 
 }

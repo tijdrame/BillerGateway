@@ -10,7 +10,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
@@ -110,6 +112,19 @@ public class GeneriqueApiService {
         // this.initializer = initializer;
     }
 
+    private String getPayload(String billerCode, String serviceName, String param1, String param2, String param3, String param4, String param5,
+    String param6, String param7, String param8, String param9, String param10, String param11, String param12, String param13, String param14, String param15,
+    String param16, String param17, String param18, String param19, String param20, String param21, String param22, String param23, String param24, 
+    String param25, String param26, String param27, String param28, String param29, String param30) {
+        return webServicesService.getPayload(billerCode, serviceName, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, 
+        param12, param13, param14, param15, param16, param17, param18, param19, param20, param21, param22, param23, param24, param25, param26, param27, param28, 
+        param29, param30);
+    }
+
+    /*private String getPayload1(String billerCode, String serviceName) {
+        return webServicesService.getPayload1(billerCode, serviceName);
+    }*/
+
     public CheckFactoryResponse checkFactory(GetBillRequest billRequest, HttpServletRequest request) {
         // atribute01 split, atribute02 post ou get
         // JsonObject rootobj = root.getAsJsonObject(); //May be an array, may be an
@@ -119,6 +134,8 @@ public class GeneriqueApiService {
         Tracking tracking = new Tracking();
         String autho = request.getHeader("Authorization");
         String[] tab = autho.split("Bearer");
+        //String pl ="";
+        
         WebServices webServices = webServicesService.getWebServiceByParams(billRequest.getBillerCode(), getBillService);
         log.info("ws = [{}]", webServices);
         if (webServices == null) {
@@ -128,7 +145,10 @@ public class GeneriqueApiService {
         }
         String requestParam = webServices.getXmlRequest();
         // set params In based in nameCorresp
+        Map<Integer, String> laMap = new HashMap<>();//add
+        Integer j = 1;//add
         for (WebServiceParams it : webServices.getServiceParams()) {
+            
             if (it.getParamSens().equalsIgnoreCase("I")) {
                 log.info("inf = [{}]", it.getParamNameCorresp());
                 try {
@@ -136,6 +156,8 @@ public class GeneriqueApiService {
                             .invoke(billRequest);
                     log.info("invoke = [{}]", fs);
                     requestParam = requestParam.replace("#" + it.getOrdre() + "#", fs.toString());
+                    laMap.put(/*"param"+*/it.getOrdre(), fs.toString());//add
+                    j += 1;//add
                 } catch (Exception e1) {
                     log.error("err = [{}]", e1.getMessage());
                     e1.fillInStackTrace();
@@ -146,6 +168,13 @@ public class GeneriqueApiService {
 
             }
         }
+        
+        String payload = getPayload(billRequest.getBillerCode(), getBillService, laMap.get(1), laMap.get(2), laMap.get(3), laMap.get(4), laMap.get(5), 
+        laMap.get(6), laMap.get(7), laMap.get(8), laMap.get(9), laMap.get(10), laMap.get(11), laMap.get(12), laMap.get(13), laMap.get(14), laMap.get(15), 
+        laMap.get(16), laMap.get(17), laMap.get(18), laMap.get(19), laMap.get(20), laMap.get(21), laMap.get(22), laMap.get(23), laMap.get(24), laMap.get(25), 
+        laMap.get(26), laMap.get(27), laMap.get(28), laMap.get(29), laMap.get(30));
+        log.info("payload [{}]", payload);
+
         log.info("req param after 3 = [{}]", requestParam);
         //if(billRequest.getBillerCode().equalsIgnoreCase("jirama")){
         if(billRequest.getBillerCode().equalsIgnoreCase(applicationProperties.getCodeJirama())){
