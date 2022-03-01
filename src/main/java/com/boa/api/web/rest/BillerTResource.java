@@ -109,10 +109,10 @@ public class BillerTResource {
      * @param id the id of the billerT to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
-    @DeleteMapping("/biller-ts/{id}")
+    /*@DeleteMapping("/biller-ts/{id}")
     public ResponseEntity<Void> deleteBillerT(@PathVariable Long id) {
         log.debug("REST request to delete BillerT : {}", id);
         billerTService.delete(id);
         return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString())).build();
-    }
+    }*/
 }

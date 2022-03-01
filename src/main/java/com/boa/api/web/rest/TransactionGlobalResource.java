@@ -109,10 +109,10 @@ public class TransactionGlobalResource {
      * @param id the id of the transactionGlobal to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
-    @DeleteMapping("/transaction-globals/{id}")
+    /*@DeleteMapping("/transaction-globals/{id}")
     public ResponseEntity<Void> deleteTransactionGlobal(@PathVariable Long id) {
         log.debug("REST request to delete TransactionGlobal : {}", id);
         transactionGlobalService.delete(id);
         return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString())).build();
-    }
+    }*/
 }
